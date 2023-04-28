@@ -53,7 +53,7 @@ fn translate_dir(src: &Path, dest: &Path, max_depth: usize) -> Result<(), Error>
 }
 
 fn translate_file(src: &Path, dest: &Path) -> Result<(), Error> {
-    println!("{:?} -> {:?}", src, dest);
+    eprintln!("{:?} -> {:?}", src, dest);
     let src = std::fs::read_to_string(src)?;
 
     let mut writer = std::fs::File::create(dest)?;
@@ -173,8 +173,8 @@ fn emit_compound<W : Write>(writer: &mut W, indent: &str, compound: &CompoundSta
 }
 
 fn emit_funcdef<W : Write>(writer: &mut W, indent: &str, funcdef: &Funcdef) -> Result<(), Error> {
-    if funcdef.name == "get_joined_encodings" {
-        println!("{:?}", funcdef.code);
+    if funcdef.name == "test_mainnet_genesis_config" {
+        println!("HERE: {:?}", funcdef.code);
     }
     let statements = emit_doc_strings(writer, indent, &funcdef.code)?;
     let a = if funcdef.r#async { "async "} else {""};
@@ -241,7 +241,7 @@ fn expr(e: &Expression) -> String {
             format!("{}({})?", a, args)
         }
         Expression::Subscript(a, b) => format!("{}{}", expr(a), subscripts(b)),
-        Expression::Attribute(a, b) => expr(a),
+        Expression::Attribute(a, b) => format!("{}.{}", expr(a), b),
         Expression::Uop(op, e) => uop(op, e),
         Expression::Bop(a, b, c) => bop(a, expr(b), c),
         Expression::MultiBop(a, b) => multibop(a, b),
