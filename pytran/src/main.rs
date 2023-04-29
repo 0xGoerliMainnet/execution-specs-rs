@@ -157,8 +157,10 @@ fn emit_compound<W : Write>(writer: &mut W, indent: &str, compound: &CompoundSta
             writeln!(writer, "{}}}", indent)?;
 
         }
-        With(_, _) => {
-            writeln!(writer, "{}// NOTE: With unsupported", indent)?;
+        With(exprs, statements) => {
+            let exprs = exprs.iter().map(|(a, b)| expr(a)).collect::<Vec<_>>().join(", ");
+            writeln!(writer, "{}// with {}", indent, exprs)?;
+            emit_statements(writer, &format!("{}    ", indent), &statements)?;
         }
         Funcdef(funcdef) => {
             emit_funcdef(writer, indent, funcdef)?;
@@ -185,9 +187,9 @@ fn emit_funcdef<W : Write>(writer: &mut W, indent: &str, funcdef: &Funcdef) -> R
         writeln!(writer, "{}// NOTE: function has untyped args", indent)?;
     }
     let ret_type = if let Some(ret_type) = &funcdef.return_type {
-        format!(" -> Result<{}, Box<dyn std::error::Error>>", expr(ret_type))
+        format!(" -> Result<{}, Error>", expr(ret_type))
     } else {
-        " -> Result<(), Box<dyn std::error::Error>>".to_string()
+        " -> Result<(), Error>".to_string()
     };
     let params = funcdef.parameters.args.iter().map(|p| {
         if let (name, Some(e), _x) = p {
@@ -203,7 +205,17 @@ fn emit_funcdef<W : Write>(writer: &mut W, indent: &str, funcdef: &Funcdef) -> R
 }
 
 fn emit_try<W : Write>(writer: &mut W, indent: &str, t: &Try) -> Result<(), Error> {
-    writeln!(writer, "{}// NOTE: Try unsupported", indent)?;
+    // Try {
+    //     try_block: todo!(),
+    //     except_clauses: todo!(),
+    //     last_except: todo!(),
+    //     else_block: todo!(),
+    //     finally_block: todo!(),
+    // }
+    writeln!(writer, "{}// Try ", indent)?;
+    emit_statements(writer, &format!("{}    ", indent), &t.try_block)?;
+    // writeln!(writer, "{}// Except ", indent)?;
+    // emit_statements(writer, &format!("{}    ", indent), &t.except_clauses)?;
     Ok(())    
 }
 
@@ -281,7 +293,7 @@ fn emit_statements<W : Write>(writer: &mut W, indent: &str, statements: &[Statem
                 }
             }
             python_parser::ast::Statement::RaiseExcFrom(_, _) => writeln!(writer, "{}// RaiseExcFrom unsupported", indent)?,
-            python_parser::ast::Statement::RaiseExc(e) => writeln!(writer, "{}return Err({});", indent, expr(e))?,
+            python_parser::ast::Statement::RaiseExc(e) => writeln!(writer, "{}return Err(Error::{});", indent, expr(e))?,
             python_parser::ast::Statement::Raise => writeln!(writer, "{}// Raise unsupported", indent)?,
             python_parser::ast::Statement::Global(_) => writeln!(writer, "{}// Global unsupported", indent)?,
             python_parser::ast::Statement::Nonlocal(_) => writeln!(writer, "{}// Nonlocal unsupported", indent)?,
