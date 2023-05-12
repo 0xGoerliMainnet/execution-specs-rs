@@ -8,8 +8,8 @@ type Error = Box<dyn std::error::Error>;
 fn main() -> Result<(), Error> {
     let mut src = PathBuf::from(std::env::current_dir().unwrap());
     let mut dest = PathBuf::from(std::env::current_dir().unwrap());
-    src.push("execution-specs/tests/");
-    dest.push("tests/");
+    src.push("execution-specs/src/ethereum/utils");
+    dest.push("src/ethereum/utils");
     translate_dir(&src, &dest, 1)?;
     
     Ok(())

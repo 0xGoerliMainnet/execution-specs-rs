@@ -39,4 +39,6 @@ pub enum EthereumException {
     FileNotFound(String),
 
     JsonDecodeError(String),
+
+    BadHexString,
 }
