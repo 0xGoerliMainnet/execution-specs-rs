@@ -12,19 +12,10 @@
 /// Functionalities and entities to obtain the genesis configurations for
 /// different chains.
 ///
-// NOTE: Import::Import unsupported
-// NOTE: Import::Import unsupported
-
-// use ::dataclasses::{dataclass};
-// use ::typing::{Any, Dict, cast};
-// use ::ethereum::{rlp};
-// use ::ethereum::base_types::{U64, U256, Bytes, Bytes8, Bytes20, Uint, slotted_freezable};
-// use ::ethereum::utils::hexadecimal::{hex_to_bytes, hex_to_bytes8, hex_to_bytes20, hex_to_u256, hex_to_uint};
 
 use std::collections::HashMap;
 
 use super::{base_types::{Bytes20, U64, Uint, U256, Bytes8, Bytes}, exceptions::EthereumException, utils::hexadecimal::{hex_to_bytes8, hex_to_u256, hex_to_bytes, hex_to_uint}};
-
 
 type Address = Bytes20;
 
@@ -71,12 +62,6 @@ pub fn get_genesis_configuration(genesis_file: &str) -> Result<GenesisConfigurat
 
 
     let mut res = GenesisConfiguration::default();
-    // pub chain_id: U64,
-    // pub difficulty: Uint,
-    // pub extra_data: Bytes,
-    // pub gas_limit: Uint,
-    // pub nonce: Bytes8,
-    // pub timestamp: U256,
 
     res.nonce = hex_to_bytes8(value["nonce"].as_str().unwrap())?;
     res.timestamp = hex_to_u256(value["timestamp"].as_str().unwrap())?;
