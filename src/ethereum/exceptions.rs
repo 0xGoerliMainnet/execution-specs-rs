@@ -12,8 +12,8 @@
 /// The Ethereum specification exception classes.
 ///
 ///
-///     The base class from which all exceptions thrown by the specification during
-///     normal operation derive.
+/// The base class from which all exceptions thrown by the specification during
+/// normal operation derive.
 ///     
 
 #[derive(Debug)]

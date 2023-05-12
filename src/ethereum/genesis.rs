@@ -25,7 +25,6 @@ use std::collections::HashMap;
 
 use num_bigint::BigUint;
 use num_traits::Num;
-use serde::Deserialize;
 
 use super::{base_types::{Bytes20, U64, Uint, U256, Bytes8, Bytes}, exceptions::EthereumException};
 

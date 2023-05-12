@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 /// 
 /// State Trie
 /// ^^^^^^^^^^
@@ -31,9 +32,9 @@ use crate::ethereum::{rlp::{EncodeRlp, encode_sequence}, base_types::{Bytes, Uin
 
 use super::fork_types::{keccak256, Account, Transaction, Receipt};
 
-type Root = [u8; 32];
+pub type Root = [u8; 32];
 
-const EMPTY_TRIE_ROOT : Root = hex!("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421");
+pub const EMPTY_TRIE_ROOT : Root = hex!("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421");
 
 pub enum Node {
     Account(Account),
@@ -149,7 +150,7 @@ pub fn encode_internal_node<V : EncodeRlp>(node: &InternalNode<V>) -> Bytes {
 /// 
 ///     Currently mostly an unimplemented stub.
 ///     
-pub fn encode_node(node: Node, storage_root: Option<Bytes>) -> Bytes {
+pub fn encode_node(_node: Node, _storage_root: Option<Bytes>) -> Bytes {
     // if isinstance(node, Account)? {
     //     assert!(!(storage_root).is(()));
     //     return Ok(encode_account(node, storage_root)?);
@@ -161,7 +162,7 @@ pub fn encode_node(node: Node, storage_root: Option<Bytes>) -> Bytes {
     //     return Err(Error::AssertionError("encoding for {type(node)} is not currently implemented")?);
     // }
     todo!();
-    Bytes::default()
+    // Bytes::default()
 }
 
 

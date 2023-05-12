@@ -20,15 +20,15 @@
 
 use crate::ethereum::{base_types::{Uint, U256, Bytes, Bytes20, Bytes256, Bytes32, Bytes8}, rlp};
 
-type Hash32 = [u8; 32];
+pub type Hash32 = [u8; 32];
 
-type Address = Bytes20;
-type Root = Hash32;
-type Bloom = Bytes256;
+pub type Address = Bytes20;
+pub type Root = Hash32;
+pub type Bloom = Bytes256;
 
-const TX_BASE_COST : u64 = 21000;
-const TX_DATA_COST_PER_NON_ZERO : u64 = 68;
-const TX_DATA_COST_PER_ZERO : u64 = 4;
+pub const TX_BASE_COST : u64 = 21000;
+pub const TX_DATA_COST_PER_NON_ZERO : u64 = 68;
+pub const TX_DATA_COST_PER_ZERO : u64 = 4;
 
 pub fn keccak256(data: &[u8]) -> Hash32 {
     use tiny_keccak::{Hasher, Keccak};
@@ -44,15 +44,15 @@ pub fn keccak256(data: &[u8]) -> Hash32 {
 ///     Atomic operation performed on the block chain.
 ///     
 pub struct Transaction {
-    nonce: U256,
-    gas_price: U256,
-    gas: U256,
-    to: Option<Address>,
-    value: U256,
-    data: Bytes,
-    v: U256,
-    r: U256,
-    s: U256,
+    pub nonce: U256,
+    pub gas_price: U256,
+    pub gas: U256,
+    pub to: Option<Address>,
+    pub value: U256,
+    pub data: Bytes,
+    pub v: U256,
+    pub r: U256,
+    pub s: U256,
 }
 
 
@@ -89,21 +89,21 @@ pub fn encode_account(raw_account_data: Account, storage_root: Root) -> Bytes {
 ///     Header portion of a block on the chain.
 ///     
 pub struct Header {
-    parent_hash: Hash32,
-    ommers_hash: Hash32,
-    coinbase: Address,
-    state_root: Root,
-    transactions_root: Root,
-    receipt_root: Root,
-    bloom: Bloom,
-    difficulty: Uint,
-    number: Uint,
-    gas_limit: Uint,
-    gas_used: Uint,
-    timestamp: U256,
-    extra_data: Bytes,
-    mix_digest: Bytes32,
-    nonce: Bytes8,
+    pub parent_hash: Hash32,
+    pub ommers_hash: Hash32,
+    pub coinbase: Address,
+    pub state_root: Root,
+    pub transactions_root: Root,
+    pub receipt_root: Root,
+    pub bloom: Bloom,
+    pub difficulty: Uint,
+    pub number: Uint,
+    pub gas_limit: Uint,
+    pub gas_used: Uint,
+    pub timestamp: U256,
+    pub extra_data: Bytes,
+    pub mix_digest: Bytes32,
+    pub nonce: Bytes8,
 }
 
 
@@ -115,9 +115,9 @@ impl Header {
 ///     A complete block.
 ///     
 pub struct Block {
-    header: Header,
-    transactions: Vec<Transaction>,
-    ommers: Vec<Header>,
+    pub header: Header,
+    pub transactions: Vec<Transaction>,
+    pub ommers: Vec<Header>,
 }
 
 
@@ -129,9 +129,9 @@ impl Block {
 ///     Data record produced during the execution of a transaction.
 ///     
 pub struct Log {
-    address: Address,
-    topics: Vec<Hash32>,
-    data: Bytes,
+    pub address: Address,
+    pub topics: Vec<Hash32>,
+    pub data: Bytes,
 }
 
 
@@ -143,10 +143,10 @@ impl Log {
 ///     Result of a transaction.
 ///     
 pub struct Receipt {
-    post_state: Root,
-    cumulative_gas_used: Uint,
-    bloom: Bloom,
-    logs: Vec<Log>,
+    pub post_state: Root,
+    pub cumulative_gas_used: Uint,
+    pub bloom: Bloom,
+    pub logs: Vec<Log>,
 }
 
 
