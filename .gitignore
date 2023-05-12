@@ -14,3 +14,5 @@ Cargo.lock
 *.pdb
 
 rust-execution-specs/
+
+.idea/
