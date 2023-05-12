@@ -40,5 +40,5 @@ pub enum EthereumException {
 
     JsonDecodeError(String),
 
-    BadHexString,
+    BadHexString(String),
 }

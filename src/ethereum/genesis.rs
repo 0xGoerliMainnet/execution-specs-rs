@@ -23,10 +23,7 @@
 
 use std::collections::HashMap;
 
-use num_bigint::BigUint;
-use num_traits::Num;
-
-use super::{base_types::{Bytes20, U64, Uint, U256, Bytes8, Bytes}, exceptions::EthereumException};
+use super::{base_types::{Bytes20, U64, Uint, U256, Bytes8, Bytes}, exceptions::EthereumException, utils::hexadecimal::{hex_to_bytes8, hex_to_u256, hex_to_bytes, hex_to_uint}};
 
 
 type Address = Bytes20;
@@ -46,30 +43,6 @@ pub struct GenesisConfiguration {
     pub nonce: Bytes8,
     pub timestamp: U256,
     pub initial_balances: HashMap<Address, U256>,
-}
-
-// TODO: unhack
-fn uint_from_hex(hex: &str) -> Option<BigUint> {
-    if hex.starts_with("0x") {
-        Some(BigUint::from_str_radix(&hex[2..], 16).unwrap())
-    } else {
-        None
-    }
-}
-
-// TODO: unhack
-fn bytes_from_hex(hex: &str) -> Option<Bytes> {
-    if hex.starts_with("0x") {
-        let mut res = vec![];
-        for d in hex[2..].as_bytes().chunks(2) {
-            let d0 = if d[0] <= b'9' { d[0] } else { d[0].wrapping_sub(7) } & 0xf;
-            let d1 = if d[1] <= b'9' { d[1] } else { d[1].wrapping_sub(7) } & 0xf;
-            res.push(d0*16 + d1);
-        }
-        Some(Bytes::from(res))
-    } else {
-        None
-    }
 }
 
 ///
@@ -105,12 +78,11 @@ pub fn get_genesis_configuration(genesis_file: &str) -> Result<GenesisConfigurat
     // pub nonce: Bytes8,
     // pub timestamp: U256,
 
-    let nonce = bytes_from_hex(value["nonce"].as_str().unwrap()).unwrap();
-    res.nonce[8-nonce.len()..].copy_from_slice(&nonce);
-    res.timestamp = uint_from_hex(value["timestamp"].as_str().unwrap()).unwrap();
-    res.extra_data = bytes_from_hex(value["extraData"].as_str().unwrap()).unwrap();
-    res.gas_limit = uint_from_hex(value["gasLimit"].as_str().unwrap()).unwrap();
-    res.difficulty = uint_from_hex(value["difficulty"].as_str().unwrap()).unwrap();
+    res.nonce = hex_to_bytes8(value["nonce"].as_str().unwrap())?;
+    res.timestamp = hex_to_u256(value["timestamp"].as_str().unwrap())?;
+    res.extra_data = hex_to_bytes(value["extraData"].as_str().unwrap())?;
+    res.gas_limit = hex_to_uint(value["gasLimit"].as_str().unwrap())?;
+    res.difficulty = hex_to_uint(value["difficulty"].as_str().unwrap())?;
 
     // TODO:
 

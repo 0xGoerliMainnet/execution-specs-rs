@@ -80,23 +80,24 @@ pub fn hex_to_bytes(hex_string: &str) -> Result<Bytes, EthereumException> {
 /// Construct a box of bytes from a hex string.
 fn from_hex(hex_string: &str) -> Result<Bytes, EthereumException> {
     if hex_string.len() % 2 != 0 {
-        return Err(EthereumException::BadHexString);
+        return Err(EthereumException::BadHexString(hex_string.to_owned()));
     }
     let mut res = vec![];
     for c in hex_string.as_bytes().chunks(2) {
         // Safety: from_str_radix will fail if not uft8.
         let src = unsafe { std::str::from_utf8_unchecked(c) };
         let b = u8::from_str_radix(src, 16)
-            .map_err(|_| EthereumException::BadHexString)?;
+            .map_err(|_| EthereumException::BadHexString(hex_string.to_owned()))?;
         res.push(b);
     }
     Ok(Bytes::from(res))
 }
 
 fn to_bytes<const N : usize>(hex_string: &str) -> Result<[u8; N], EthereumException> {
+    let hex_string = remove_hex_prefix(hex_string);
     let bytes = from_hex(hex_string)?;
     if bytes.len() > N {
-        Err(EthereumException::BadHexString)
+        Err(EthereumException::BadHexString(hex_string.to_owned()))
     } else {
         let mut res = [0; N];
         res[N-bytes.len()..].copy_from_slice(&bytes);
@@ -208,7 +209,7 @@ pub fn hex_to_hash(hex_string: &str) -> Result<Hash32, EthereumException> {
 ///     
 pub fn hex_to_uint(hex_string: &str) -> Result<Uint, EthereumException> {
     Ok(Uint::from_str_radix(remove_hex_prefix(hex_string), 16)
-        .map_err(|_| EthereumException::BadHexString)?)
+        .map_err(|_| EthereumException::BadHexString(hex_string.to_owned()))?)
 }
 
 
@@ -246,7 +247,7 @@ pub fn hex_to_u64(hex_string: &str) -> Result<U64, EthereumException> {
 ///     
 pub fn hex_to_u256(hex_string: &str) -> Result<U256, EthereumException> {
     Ok(U256::from_str_radix(remove_hex_prefix(hex_string), 16)
-        .map_err(|_| EthereumException::BadHexString)?)
+        .map_err(|_| EthereumException::BadHexString(hex_string.to_owned()))?)
 }
 
 
