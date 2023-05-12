@@ -23,6 +23,8 @@
 
 use std::collections::HashMap;
 
+use num_bigint::BigUint;
+use num_traits::Num;
 use serde::Deserialize;
 
 use super::{base_types::{Bytes20, U64, Uint, U256, Bytes8, Bytes}, exceptions::EthereumException};
@@ -36,7 +38,7 @@ type Address = Bytes20;
 ///     Specifies the allocation of ether set out in the pre-sale, and some of
 ///     the fields of the genesis block.
 ///
-#[derive(Deserialize)]
+#[derive(Default)]
 pub struct GenesisConfiguration {
     pub chain_id: U64,
     pub difficulty: Uint,
@@ -45,6 +47,30 @@ pub struct GenesisConfiguration {
     pub nonce: Bytes8,
     pub timestamp: U256,
     pub initial_balances: HashMap<Address, U256>,
+}
+
+// TODO: unhack
+fn uint_from_hex(hex: &str) -> Option<BigUint> {
+    if hex.starts_with("0x") {
+        Some(BigUint::from_str_radix(&hex[2..], 16).unwrap())
+    } else {
+        None
+    }
+}
+
+// TODO: unhack
+fn bytes_from_hex(hex: &str) -> Option<Bytes> {
+    if hex.starts_with("0x") {
+        let mut res = vec![];
+        for d in hex[2..].as_bytes().chunks(2) {
+            let d0 = if d[0] <= b'9' { d[0] } else { d[0].wrapping_sub(7) } & 0xf;
+            let d1 = if d[1] <= b'9' { d[1] } else { d[1].wrapping_sub(7) } & 0xf;
+            res.push(d0*16 + d1);
+        }
+        Some(Bytes::from(res))
+    } else {
+        None
+    }
 }
 
 ///
@@ -64,11 +90,34 @@ pub struct GenesisConfiguration {
 ///         The genesis configuration obtained from the json genesis file.
 ///
 pub fn get_genesis_configuration(genesis_file: &str) -> Result<GenesisConfiguration, EthereumException> {
-    let path = format!("assets/{genesis_file}");
+    let path = format!("execution-specs/src/ethereum/assets/{genesis_file}");
     let file = std::fs::read_to_string(&path)
         .map_err(|_| EthereumException::FileNotFound(path))?;
-    let res : GenesisConfiguration = serde_json::from_str(&file)
+
+    let value : serde_json::Value = serde_json::from_str(&file)
         .map_err(|e| EthereumException::JsonDecodeError(e.to_string()))?;
+
+
+    let mut res = GenesisConfiguration::default();
+    // pub chain_id: U64,
+    // pub difficulty: Uint,
+    // pub extra_data: Bytes,
+    // pub gas_limit: Uint,
+    // pub nonce: Bytes8,
+    // pub timestamp: U256,
+
+    let nonce = bytes_from_hex(value["nonce"].as_str().unwrap()).unwrap();
+    res.nonce[8-nonce.len()..].copy_from_slice(&nonce);
+    res.timestamp = uint_from_hex(value["timestamp"].as_str().unwrap()).unwrap();
+    res.extra_data = bytes_from_hex(value["extraData"].as_str().unwrap()).unwrap();
+    res.gas_limit = uint_from_hex(value["gasLimit"].as_str().unwrap()).unwrap();
+    res.difficulty = uint_from_hex(value["difficulty"].as_str().unwrap()).unwrap();
+
+    // TODO:
+
+    // for v in value["alloc"].as_array().unwrap() {
+    //     let v = v
+    // }
 
     Ok(res)
 }
@@ -118,7 +167,9 @@ pub fn get_genesis_configuration(genesis_file: &str) -> Result<GenesisConfigurat
 ///     genesis :
 ///         The genesis configuration to use.
 ///
-pub fn add_genesis_block() {}
+pub fn add_genesis_block() {
+
+}
 
 // pub fn add_genesis_block<H : HardFork, C: BlockChain>(hardfork: H, chain: C, genesis: GenesisConfiguration) -> Result<(), Error> {
 //     for (account, balance) in genesis.initial_balances.items()? {

@@ -12,24 +12,6 @@ fn main() -> Result<(), Error> {
     dest.push("tests/");
     translate_dir(&src, &dest, 1)?;
     
-    // let mut src = PathBuf::from(std::env::current_dir().unwrap());
-    // let mut dest = PathBuf::from(std::env::current_dir().unwrap());
-    // src.push("execution-specs/src/");
-    // dest.push("rust-execution-specs/src/");
-    // translate_dir(&src, &dest, 1)?;
-    
-    // let mut src = PathBuf::from(std::env::current_dir().unwrap());
-    // let mut dest = PathBuf::from(std::env::current_dir().unwrap());
-    // src.push("execution-specs/src/ethereum");
-    // dest.push("rust-execution-specs/src/ethereum");
-    // translate_dir(&src, &dest, 1)?;
-    
-    // let mut src = PathBuf::from(std::env::current_dir().unwrap());
-    // let mut dest = PathBuf::from(std::env::current_dir().unwrap());
-    // src.push("execution-specs/src/ethereum/frontier");
-    // dest.push("rust-execution-specs/src/ethereum/frontier");
-    // translate_dir(&src, &dest, 1)?;
-    
     Ok(())
 }
 
