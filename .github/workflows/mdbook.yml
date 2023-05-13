@@ -25,15 +25,16 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          working-directory: rust-execution-specs
+      - name: Generate Docs
+        working-directory: rust-execution-specs
+        run: cargo doc
       - name: Copy docs
         run: cp -r rust-execution-specs/target/doc mdbook/src/docs
 
   # Build job
   build:
+    name: Build mdBook
+    needs: gendocs
     runs-on: ubuntu-latest
     env:
       MDBOOK_VERSION: 0.4.28
