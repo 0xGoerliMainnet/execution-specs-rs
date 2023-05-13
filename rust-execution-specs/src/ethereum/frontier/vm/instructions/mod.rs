@@ -21,6 +21,7 @@ pub mod environment;
 pub mod keccak;
 pub mod log;
 pub mod memory;
+pub mod stack;
 
 /// Enum for EVM Opcodes
 #[repr(usize)]
