@@ -7,3 +7,7 @@ edition = "2021"
 
 [dependencies]
 python-parser = "0.2.0"
+
+[[bin]]
+name = "pytran"
+path = "src/pytran.rs"
