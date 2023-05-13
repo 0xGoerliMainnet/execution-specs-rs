@@ -19,6 +19,8 @@ jobs:
   gendocs:
     name: Generate Docs
     runs-on: ubuntu-latest
+    env:
+      MDBOOK_VERSION: 0.4.28
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -29,15 +31,6 @@ jobs:
         run: cargo doc
       - name: Copy docs
         run: cp -r rust-execution-specs/target/doc mdbook/src/docs
-
-  # Build job
-  build:
-    name: Build mdBook
-    needs: gendocs
-    runs-on: ubuntu-latest
-    env:
-      MDBOOK_VERSION: 0.4.28
-    steps:
       - name: Install mdBook
         run: |
           cargo install --version ${MDBOOK_VERSION} mdbook
