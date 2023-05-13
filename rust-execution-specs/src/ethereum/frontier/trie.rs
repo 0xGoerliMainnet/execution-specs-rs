@@ -1,18 +1,18 @@
+//! 
+//! State Trie
+//! ^^^^^^^^^^
+//! 
+//! .. contents:: Table of Contents
+//!     :backlinks: none
+//!     :local:
+//! 
+//! Introduction
+//! ------------
+//! 
+//! The state trie is the structure responsible for storing
+//! `.fork_types.Account` objects.
+//! 
 #![allow(dead_code)]
-/// 
-/// State Trie
-/// ^^^^^^^^^^
-/// 
-/// .. contents:: Table of Contents
-///     :backlinks: none
-///     :local:
-/// 
-/// Introduction
-/// ------------
-/// 
-/// The state trie is the structure responsible for storing
-/// `.fork_types.Account` objects.
-/// 
 
 // NOTE: Import::Import unsupported
 // use ::dataclasses::{dataclass, field};
@@ -28,27 +28,39 @@ use std::collections::HashMap;
 
 use hex_literal::hex;
 
-use crate::ethereum::{rlp::{EncodeRlp, encode_sequence}, base_types::{Bytes, Uint, U256}};
+use crate::ethereum::{rlp::{EncodeRlp, encode_sequence}, base_types::{Bytes, Uint, U256}, exceptions::EthereumException};
 
-use super::fork_types::{keccak256, Account, Transaction, Receipt};
+use super::fork_types::{keccak256, Account, Transaction, Receipt, Address};
 
 pub type Root = [u8; 32];
 
+pub trait Key : Eq + std::hash::Hash + AsRef<[u8]> {}
+
 pub const EMPTY_TRIE_ROOT : Root = hex!("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421");
 
-pub enum Node {
-    Account(Account),
-    Bytes(Bytes),
-    Transaction(Transaction),
-    Receipt(Receipt),
-    Uint(Uint),
-    U256(U256),
-    Null(()),
+pub trait Node: PartialEq + std::fmt::Debug {
+    fn encode(&self) -> Bytes;
 }
 
-// Node = Union[Account][Bytes][Transaction][Receipt][Uint][U256][()];
-// K = TypeVar("K", bound = Bytes)?;
-// V = TypeVar("V", Optional[Account], Optional[Bytes], Bytes, Optional[Transaction], Optional[Receipt], Uint, U256)?;
+impl Node for String {
+    fn encode(&self) -> Bytes {
+        self.as_bytes().into()
+    }
+}
+
+impl Key for String {
+}
+
+// pub enum Node {
+//     Account(Account, Root),
+//     Bytes(Bytes),
+//     Transaction(Transaction),
+//     Receipt(Receipt),
+//     Uint(Uint),
+//     U256(U256),
+//     String(String),
+//     Null(()),
+// }
 
 /// Leaf node in the Merkle Trie
 pub struct LeafNode<T : EncodeRlp> {
@@ -150,28 +162,17 @@ pub fn encode_internal_node<V : EncodeRlp>(node: &InternalNode<V>) -> Bytes {
 /// 
 ///     Currently mostly an unimplemented stub.
 ///     
-pub fn encode_node(_node: Node, _storage_root: Option<Bytes>) -> Bytes {
-    // if isinstance(node, Account)? {
-    //     assert!(!(storage_root).is(()));
-    //     return Ok(encode_account(node, storage_root)?);
-    // } else if isinstance(node, (Transaction, Receipt, U256))? {
-    //     return Ok(rlp.encode(cast(rlp.RLP, node)?)?);
-    // } else if isinstance(node, Bytes)? {
-    //     return Ok(node);
-    // } else {
-    //     return Err(Error::AssertionError("encoding for {type(node)} is not currently implemented")?);
-    // }
-    todo!();
-    // Bytes::default()
+pub fn encode_node<N : Node>(node: &N) -> Bytes {
+    node.encode()
 }
-
 
 /// 
 ///     The Merkle Trie.
 ///     
+#[derive(Debug)]
 pub struct Trie<K, V>
 where
-    K: Eq + std::hash::Hash, V: Default + PartialEq
+    K: Key, V: Node,
 {
     pub secured: bool,
     pub default: V,
@@ -179,14 +180,14 @@ where
 }
 
 
-impl<K, V : Default> Trie<K, V>
+impl<K, V> Trie<K, V>
 where
-    K: Eq + std::hash::Hash, V: Default + PartialEq
+    K: Key, V: Node,
 {
-    pub fn new(secured: bool) -> Self {
+    pub fn new(secured: bool, default: V) -> Self {
         Self {
             secured,
-            default: V::default(),
+            default,
             data: HashMap::new(),
         }
     }
@@ -227,9 +228,9 @@ where
 ///     value : `V`
 ///         Node to insert at `key`.
 ///     
-pub fn trie_set<K , V >(trie: &mut Trie<K, V>, key: K, value: V)
+pub fn trie_set<K, V>(trie: &mut Trie<K, V>, key: K, value: V)
 where
-    K: Eq + std::hash::Hash, V: Default + PartialEq
+    K: Key, V: Node,
 {
     if value == trie.default {
         if trie.data.contains_key(&key) {
@@ -241,26 +242,29 @@ where
 }
 
 
-// /// 
-// ///     Gets an item from the Merkle Trie.
-// /// 
-// ///     This method returns `trie.default` if the key is missing.
-// /// 
-// ///     Parameters
-// ///     ----------
-// ///     trie:
-// ///         Trie to lookup in.
-// ///     key :
-// ///         Key to lookup.
-// /// 
-// ///     Returns
-// ///     -------
-// ///     node : `V`
-// ///         Node at `key` in the trie.
-// ///     
-// pub fn trie_get(trie: Trie<K, V>, key: K) -> Result<V, EthereumException> {
-//     return Ok(trie._data.get(key, trie.default)?);
-// }
+/// 
+///     Gets an item from the Merkle Trie.
+/// 
+///     This method returns `trie.default` if the key is missing.
+/// 
+///     Parameters
+///     ----------
+///     trie:
+///         Trie to lookup in.
+///     key :
+///         Key to lookup.
+/// 
+///     Returns
+///     -------
+///     node : `V`
+///         Node at `key` in the trie.
+///     
+pub fn trie_get<'t, K, V>(trie: &'t Trie<K, V>, key: &K) -> &'t V
+where
+    K: Key, V: Node,
+{
+    trie.data.get(key).unwrap_or_else(|| &trie.default)
+}
 
 
 // /// 
@@ -349,72 +353,72 @@ pub fn nibble_list_to_compact(x: &[u8], is_leaf: bool) -> Bytes {
 // }
 
 
-// /// 
-// ///     Prepares the trie for root calculation. Removes values that are empty,
-// ///     hashes the keys (if `secured == True`) and encodes all the nodes.
-// /// 
-// ///     Parameters
-// ///     ----------
-// ///     trie :
-// ///         The `Trie` to prepare.
-// ///     get_storage_root :
-// ///         Function to get the storage root of an account. Needed to encode
-// ///         `Account` objects.
-// /// 
-// ///     Returns
-// ///     -------
-// ///     out : `Mapping[ethereum.base_types.Bytes, Node]`
-// ///         Object with keys mapped to nibble-byte form.
-// ///     
-// pub fn _prepare_trie(trie: Trie<K, V>, get_storage_root: Callable[[Address]][Root]) -> Result<Mapping[Bytes][Bytes], EthereumException> {
-//     // TypedAssignment unsupported
-//     for (preimage, value) in trie._data.items()? {
-//         if isinstance(value, Account)? {
-//             assert!(!(get_storage_root).is(()));
-//             address = Address(preimage)?;
-//             encoded_value = encode_node(value, get_storage_root(address)?)?;
-//         } else {
-//             encoded_value = encode_node(value)?;
-//         }
-//         ensure(encoded_value != [], AssertionError)?;
-//         if trie.secured {
-//             key = keccak256(preimage)?;
-//         } else {
-//             key = preimage;
-//         }
-//         mapped[bytes_to_nibble_list(key)?] = encoded_value;
-//     }
-//     return Ok(mapped);
-// }
+/// 
+///     Prepares the trie for root calculation. Removes values that are empty,
+///     hashes the keys (if `secured == True`) and encodes all the nodes.
+/// 
+///     Parameters
+///     ----------
+///     trie :
+///         The `Trie` to prepare.
+///     get_storage_root :
+///         Function to get the storage root of an account. Needed to encode
+///         `Account` objects.
+/// 
+///     Returns
+///     -------
+///     out : `Mapping[ethereum.base_types.Bytes, Node]`
+///         Object with keys mapped to nibble-byte form.
+///     
+pub fn _prepare_trie<K, V>(trie: &Trie<K, V>) -> Result<Vec<(Bytes, Bytes)>, EthereumException>
+where
+    K: Key, V: Node,
+{
+    let mut res = vec![];
+    for (preimage, value) in &trie.data {
+        if trie.secured {
+            let encoded_value = encode_node(value);
+            assert!(!encoded_value.is_empty());
+            // res.push((bytes_to_nibble_list(&keccak256(preimage.as_ref())), encoded_value));
+        } else {
+            // res.push((bytes_to_nibble_list(&keccak256(preimage.as_ref())), preimage.as_ref()));
+        };
+    }
+    res.sort();
+    Ok(res)
+}
 
-
-// /// 
-// ///     Computes the root of a modified merkle patricia trie (MPT).
-// /// 
-// ///     Parameters
-// ///     ----------
-// ///     trie :
-// ///         `Trie` to get the root of.
-// ///     get_storage_root :
-// ///         Function to get the storage root of an account. Needed to encode
-// ///         `Account` objects.
-// /// 
-// /// 
-// ///     Returns
-// ///     -------
-// ///     root : `.fork_types.Root`
-// ///         MPT root of the underlying key-value pairs.
-// ///     
-// pub fn root(trie: Trie<K, V>, get_storage_root: Callable[[Address]][Root]) -> Result<Root, EthereumException> {
-//     obj = _prepare_trie(trie, get_storage_root)?;
-//     root_node = encode_internal_node(patricialize(obj, Uint(0)?)?)?;
-//     if len(rlp.encode(root_node)?)? < 32 {
-//         return Ok(keccak256(rlp.encode(root_node)?)?);
-//     } else {
-//         assert!(isinstance(root_node, Bytes)?);
-//         return Ok(Root(root_node)?);
-//     }
-// }
+/// 
+///     Computes the root of a modified merkle patricia trie (MPT).
+/// 
+///     Parameters
+///     ----------
+///     trie :
+///         `Trie` to get the root of.
+///     get_storage_root :
+///         Function to get the storage root of an account. Needed to encode
+///         `Account` objects.
+/// 
+/// 
+///     Returns
+///     -------
+///     root : `.fork_types.Root`
+///         MPT root of the underlying key-value pairs.
+///     
+pub fn root<K, V>(trie: &Trie<K, V>) -> Result<Root, EthereumException>
+where
+    K: Key, V: Node,
+{
+    let obj = _prepare_trie(&trie)?;
+    todo!();
+    // root_node = encode_internal_node(patricialize(obj, Uint(0)?)?)?;
+    // if len(rlp.encode(root_node)?)? < 32 {
+    //     return Ok(keccak256(rlp.encode(root_node)?)?);
+    // } else {
+    //     assert!(isinstance(root_node, Bytes)?);
+    //     return Ok(Root(root_node)?);
+    // }
+}
 
 
 // /// 
