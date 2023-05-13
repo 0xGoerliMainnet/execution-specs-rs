@@ -1,4 +1,4 @@
-# execution-specs
+# execution-specs-rs
 
 `ETHGlobal Lisbon Hackathon` 
 
