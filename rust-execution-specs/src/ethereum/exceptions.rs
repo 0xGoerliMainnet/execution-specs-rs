@@ -1,20 +1,18 @@
-///
-/// Exceptions
-/// ^^^^^^^^^^
-///
-/// .. contents:: Table of Contents
-///     :backlinks: none
-///     :local:
-///
-/// Introduction
-/// ------------
-///
-/// The Ethereum specification exception classes.
-///
-///
-/// The base class from which all exceptions thrown by the specification during
-/// normal operation derive.
-///     
+//!
+//! # Exceptions
+//!
+//! .. contents:: Table of Contents
+//!     :backlinks: none
+//!     :local:
+//!
+//! ## Introduction
+//!
+//! The Ethereum specification exception classes.
+//!
+//!
+//! The base class from which all exceptions thrown by the specification during
+//! normal operation derive.
+//!     
 
 #[derive(Debug)]
 pub enum EthereumException {

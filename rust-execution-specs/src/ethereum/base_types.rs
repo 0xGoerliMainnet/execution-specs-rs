@@ -1,16 +1,15 @@
-///
-/// Numeric & Array Types
-/// ^^^^^^^^^^^^^^^^^^^^^
-///
-/// .. contents:: Table of Contents
-///     :backlinks: none
-///     :local:
-///
-/// Introduction
-/// ------------
-///
-/// Integer and array types which are used by—but not unique to—Ethereum.
-///
+//!
+//! # Numeric & Array Types
+//!
+//! .. contents:: Table of Contents
+//!     :backlinks: none
+//!     :local:
+//!
+//! Introduction
+//! ------------
+//!
+//! Integer and array types which are used by—but not unique to—Ethereum.
+//!
 
 
 // use ::__future__::{annotations};
@@ -29,6 +28,7 @@ use num_bigint::BigUint;
 
 // use super::exceptions::EthereumException;
 
+/// Array of bytes.
 pub type Bytes = Box<[u8]>;
 
 // pub type SignedInt = num_bigint::BigInt;
@@ -46,16 +46,16 @@ pub type Uint = num_bigint::BigUint;
 ///
 pub type U256 = BigUint;
 
-// /// 
-// ///     Unsigned positive integer, which can represent `0` to `2 ** 32 - 1`,
-// ///     inclusive.
-// ///     
+/// 
+///     Unsigned positive integer, which can represent `0` to `2 ** 32 - 1`,
+///     inclusive.
+///     
 pub type U32 = u32;
 
-// /// 
-// ///     Unsigned positive integer, which can represent `0` to `2 ** 64 - 1`,
-// ///     inclusive.
-// ///     
+/// 
+///     Unsigned positive integer, which can represent `0` to `2 ** 64 - 1`,
+///     inclusive.
+///     
 pub type U64 = u64;
 
 
@@ -96,6 +96,7 @@ pub type Bytes64 = [u8; 64];
 ///
 pub type Bytes256 = [u8; 256];
 
+/// Does exactly what it says on the tin.
 pub fn strip_leading_zeros(value: &[u8]) -> &[u8] {
     let leading_zeros = value.iter().position(|b| *b != 0).unwrap_or(value.len());
     &value[leading_zeros..]
