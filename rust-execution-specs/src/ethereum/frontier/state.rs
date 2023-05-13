@@ -27,11 +27,11 @@
 // /// 
 // ///     Contains all information that is preserved between transactions.
 // ///     
-// struct State {
-//     main_trie: Trie<Address, Option<Account>>,
-//     storage_tries: HashMap<Address, Trie<Bytes, U256>>,
-//     snapshots: Vec<(Trie<Address, Option<Account>>, HashMap<Address, Trie<Bytes, U256>>)>,
-// }
+pub struct State {
+    // main_trie: Trie<Address, Option<Account>>,
+    // storage_tries: HashMap<Address, Trie<Bytes, U256>>,
+    // snapshots: Vec<(Trie<Address, Option<Account>>, HashMap<Address, Trie<Bytes, U256>>)>,
+}
 
 
 // impl State {
