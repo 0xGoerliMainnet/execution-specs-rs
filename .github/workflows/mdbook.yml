@@ -33,6 +33,8 @@ jobs:
 
   # Build job
   build:
+    name: Build mdBook
+    needs: gendocs
     runs-on: ubuntu-latest
     env:
       MDBOOK_VERSION: 0.4.28
