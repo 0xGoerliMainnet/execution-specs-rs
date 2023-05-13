@@ -11,59 +11,59 @@
 //! 
 //! Numeric operations specific utility functions used in this specification.
 //!
- 
-// use ::typing::{Sequence, Tuple};
-// use ::ethereum::base_types::{U32, Uint};
-// /// 
-// ///     Determines the sign of a number.
-// /// 
-// ///     Parameters
-// ///     ----------
-// ///     value :
-// ///         The value whose sign is to be determined.
-// /// 
-// ///     Returns
-// ///     -------
-// ///     sign : `int`
-// ///         The sign of the number (-1 or 0 or 1).
-// ///         The return value is based on math signum function.
-// ///     
-// pub fn get_sign(value: int) -> Result<int, Error> {
-//     if value < 0 {
-//         return Ok(-(1));
-//     } else if value == 0 {
-//         return Ok(0);
-//     } else {
-//         return Ok(1);
-//     }
-// }
+
+use num_bigint::BigInt;
+use crate::ethereum::base_types::Uint;
 
 
-// /// 
-// ///     Converts a unsigned integer to the next closest multiple of 32.
-// /// 
-// ///     Parameters
-// ///     ----------
-// ///     value :
-// ///         The value whose ceil32 is to be calculated.
-// /// 
-// ///     Returns
-// ///     -------
-// ///     ceil32 : `ethereum.base_types.U256`
-// ///         The same value if it's a perfect multiple of 32
-// ///         else it returns the smallest multiple of 32
-// ///         that is greater than `value`.
-// ///     
-// pub fn ceil32(value: Uint) -> Result<Uint, Error> {
-//     ceiling = Uint(32)?;
-//     remainder = value % ceiling;
-//     if remainder == Uint(0)? {
-//         return Ok(value);
-//     } else {
-//         return Ok(value + ceiling - remainder);
-//     }
-// }
+/// Determines the sign of a number.
+/// 
+/// Parameters
+/// ----------
+/// value :
+///     The value whose sign is to be determined.
+/// 
+/// Returns
+/// -------
+/// sign : `int`
+///     The sign of the number (-1 or 0 or 1).
+///     The return value is based on math signum function.
+pub fn get_sign(value: BigInt) -> BigInt {
+    if value < BigInt::from(0) {
+        BigInt::from(-1)
+    } else if value == BigInt::from(0) {
+        BigInt::from(0)
+    } else {
+        BigInt::from(1)
+    }
+}
 
+
+
+///
+///     Converts a unsigned integer to the next closest multiple of 32.
+///
+///     Parameters
+///     ----------
+///     value :
+///         The value whose ceil32 is to be calculated.
+///
+///     Returns
+///     -------
+///     ceil32 : `ethereum.base_types.U256`
+///         The same value if it's a perfect multiple of 32
+///         else it returns the smallest multiple of 32
+///         that is greater than `value`.
+///
+pub fn ceil32(value: Uint) -> Uint {
+    let ceiling = Uint::from(32u8);
+    let remainder = &value % &ceiling;
+    if remainder == Uint::from(0u8) {
+        value
+    } else {
+        value + ceiling - remainder
+    }
+}
 
 // /// 
 // ///     Checks if `number` is a prime number.
@@ -170,5 +170,3 @@
 //     sequence_as_bytes = le_uint32_sequence_to_bytes(sequence)?;
 //     return Ok(Uint.from_le_bytes(sequence_as_bytes)?);
 // }
-
-

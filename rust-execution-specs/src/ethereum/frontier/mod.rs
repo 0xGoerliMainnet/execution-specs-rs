@@ -12,3 +12,4 @@ pub mod trie;
 pub mod bloom;
 pub mod fork;
 pub mod state;
+pub mod vm;
