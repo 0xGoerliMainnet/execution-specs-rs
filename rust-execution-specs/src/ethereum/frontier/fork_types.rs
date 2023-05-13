@@ -6,7 +6,7 @@
 /// Types re-used throughout the specification, which are specific to Ethereum.
 /// 
 
-use crate::ethereum::{base_types::{Uint, U256, Bytes, Bytes20, Bytes256, Bytes32, Bytes8}, rlp};
+use crate::ethereum::{base_types::{Uint, U256, Bytes, Bytes20, Bytes256, Bytes32, Bytes8}, rlp::{self, EncodeRlp}};
 
 pub type Hash32 = [u8; 32];
 
@@ -77,6 +77,7 @@ pub fn encode_account(raw_account_data: Account, storage_root: Root) -> Bytes {
 /// 
 ///     Header portion of a block on the chain.
 ///     
+#[derive(Clone)]
 pub struct Header {
     pub parent_hash: Hash32,
     pub ommers_hash: Hash32,
@@ -97,6 +98,28 @@ pub struct Header {
 
 
 impl Header {
+}
+
+impl EncodeRlp for Header {
+    fn encode(&self) -> Bytes {
+        rlp::encode(&(
+            self.parent_hash,
+            self.ommers_hash,
+            self.coinbase,
+            self.state_root,
+            self.transactions_root,
+            self.receipt_root,
+            self.bloom,
+            self.difficulty.clone(),
+            self.number.clone(),
+            self.gas_limit.clone(),
+            self.gas_used.clone(),
+            self.timestamp.clone(),
+            self.extra_data.clone(),
+            self.mix_digest,
+            self.nonce,
+        ))
+    }
 }
 
 

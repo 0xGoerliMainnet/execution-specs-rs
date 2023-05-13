@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use clap::Parser;
 
 #[derive(Parser, Debug)]
@@ -5,6 +7,24 @@ use clap::Parser;
 struct Args {
     #[arg(short, long)]
     rpc_url: String,
+}
+
+struct BlockDownloader {
+    rpc_url: String,
+    queue: VecDeque<u64>,
+}
+
+impl BlockDownloader {
+    fn new(rpc_url: String) -> Self {
+        let mut downlowder = Self { 
+            rpc_url,
+            queue: VecDeque::with_capacity(512)
+        };
+        downlowder
+    }
+
+    async fn download(&mut self) {
+    }
 }
 
 fn main() {

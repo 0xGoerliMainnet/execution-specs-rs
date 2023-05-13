@@ -28,8 +28,10 @@
 // use super::utils::message::{prepare_message};
 // use super::vm::interpreter::{process_message_call};
 
-use crate::ethereum::base_types::{U64};
-use super::{fork_types::Block, state::State};
+use std::{todo, ops::Add};
+
+use crate::ethereum::{base_types::{U64, Uint, U256}, exceptions::EthereumException, rlp, frontier::state::state_root};
+use super::{fork_types::{Block, Hash32, keccak256, Header, Bloom, Root, Transaction, Address}, state::State};
 
 // static  BLOCK_REWARD: U256 = U256::from(10u64).pow(18u64).mul(U256::from(5u64));
 const GAS_LIMIT_ADJUSTMENT_FACTOR: u64 = 1024;
@@ -49,127 +51,141 @@ pub struct BlockChain {
 // impl BlockChain {
 // }
 
-// ///
-// ///     Transforms the state from the previous hard fork (`old`) into the block
-// ///     chain object for this hard fork and returns it.
-// ///
-// ///     When forks need to implement an irregular state transition, this function
-// ///     is used to handle the irregularity. See the :ref:`DAO Fork <dao-fork>` for
-// ///     an example.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     old :
-// ///         Previous block chain object.
-// ///
-// ///     Returns
-// ///     -------
-// ///     new : `BlockChain`
-// ///         Upgraded block chain object for this hard fork.
-// ///
-// pub fn apply_fork(old: BlockChain) -> Result<BlockChain, Error> {
-//     return Ok(old);
-// }
+///
+///     Transforms the state from the previous hard fork (`old`) into the block
+///     chain object for this hard fork and returns it.
+///
+///     When forks need to implement an irregular state transition, this function
+///     is used to handle the irregularity. See the :ref:`DAO Fork <dao-fork>` for
+///     an example.
+///
+///     Parameters
+///     ----------
+///     old :
+///         Previous block chain object.
+///
+///     Returns
+///     -------
+///     new : `BlockChain`
+///         Upgraded block chain object for this hard fork.
+///
+pub fn apply_fork(old: BlockChain) -> Result<BlockChain, EthereumException> {
+    return Ok(old);
+}
 
-// ///
-// ///     Obtain the list of hashes of the previous 256 blocks in order of
-// ///     increasing block number.
-// ///
-// ///     This function will return less hashes for the first 256 blocks.
-// ///
-// ///     The ``BLOCKHASH`` opcode needs to access the latest hashes on the chain,
-// ///     therefore this function retrieves them.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     chain :
-// ///         History and current state.
-// ///
-// ///     Returns
-// ///     -------
-// ///     recent_block_hashes : `List[Hash32]`
-// ///         Hashes of the recent 256 blocks in order of increasing block number.
-// ///
-// pub fn get_last_256_block_hashes(chain: BlockChain) -> Result<List[Hash32], Error> {
-//     recent_blocks = chain.blocks[-(255)..];
-//     if len(recent_blocks)? == 0 {
-//         return Ok([]);
-//     }
-//     recent_block_hashes = [];
-//     for block in recent_blocks {
-//         prev_block_hash = block.header.parent_hash;
-//         recent_block_hashes.append(prev_block_hash)?;
-//     }
-//     most_recent_block_hash = keccak256(rlp.encode(recent_blocks[-(1)].header)?)?;
-//     recent_block_hashes.append(most_recent_block_hash)?;
-//     return Ok(recent_block_hashes);
-// }
+///
+///     Obtain the list of hashes of the previous 256 blocks in order of
+///     increasing block number.
+///
+///     This function will return less hashes for the first 256 blocks.
+///
+///     The ``BLOCKHASH`` opcode needs to access the latest hashes on the chain,
+///     therefore this function retrieves them.
+///
+///     Parameters
+///     ----------
+///     chain :
+///         History and current state.
+///
+///     Returns
+///     -------
+///     recent_block_hashes : `List[Hash32]`
+///         Hashes of the recent 256 blocks in order of increasing block number.
+///
+pub fn get_last_256_block_hashes(chain: &BlockChain) -> Result<Vec<Hash32>, EthereumException> {
+    // get last 255 blocks
+    let recent_blocks = chain.blocks.iter().rev().take(255).collect::<Vec<&Block>>();
+    if recent_blocks.len() == 0 {
+        return Ok(Vec::default());
+    }
+    
+    let mut recent_block_hashes = Vec::new();
+    for block in &recent_blocks {
+        let prev_block_hash = block.header.parent_hash;
+        recent_block_hashes.push(prev_block_hash);
+    }
+    
+    let last_header = &recent_blocks.last().unwrap().header;
+    let most_recent_block_hash = keccak256(Box::leak(rlp::encode(&last_header)));
+    recent_block_hashes.push(most_recent_block_hash);
+    return Ok(recent_block_hashes);
+}
 
-// ///
-// ///     Attempts to apply a block to an existing block chain.
-// ///
-// ///     All parts of the block's contents need to be verified before being added
-// ///     to the chain. Blocks are verified by ensuring that the contents of the
-// ///     block make logical sense with the contents of the parent block. The
-// ///     information in the block's header must also match the corresponding
-// ///     information in the block.
-// ///
-// ///     To implement Ethereum, in theory clients are only required to store the
-// ///     most recent 255 blocks of the chain since as far as execution is
-// ///     concerned, only those blocks are accessed. Practically, however, clients
-// ///     should store more blocks to handle reorgs.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     chain :
-// ///         History and current state.
-// ///     block :
-// ///         Block to apply to `chain`.
-// ///
-// pub fn state_transition(chain: BlockChain, block: Block) -> Result<(), Error> {
-//     parent_header = chain.blocks[-(1)].header;
-//     validate_header(block.header, parent_header)?;
-//     validate_ommers(block.ommers, block.header, chain)?;
-//     (gas_used, transactions_root, receipt_root, block_logs_bloom, state) = apply_body(chain.state, get_last_256_block_hashes(chain)?, block.header.coinbase, block.header.number, block.header.gas_limit, block.header.timestamp, block.header.difficulty, block.transactions, block.ommers)?;
-//     ensure(gas_used == block.header.gas_used, InvalidBlock)?;
-//     ensure(transactions_root == block.header.transactions_root, InvalidBlock)?;
-//     ensure(state_root(state)? == block.header.state_root, InvalidBlock)?;
-//     ensure(receipt_root == block.header.receipt_root, InvalidBlock)?;
-//     ensure(block_logs_bloom == block.header.bloom, InvalidBlock)?;
-//     chain.blocks.append(block)?;
-//     if len(chain.blocks)? > 255 {
-//         chain.blocks = chain.blocks[-(255)..];
-//     }
-// }
+///
+///     Attempts to apply a block to an existing block chain.
+///
+///     All parts of the block's contents need to be verified before being added
+///     to the chain. Blocks are verified by ensuring that the contents of the
+///     block make logical sense with the contents of the parent block. The
+///     information in the block's header must also match the corresponding
+///     information in the block.
+///
+///     To implement Ethereum, in theory clients are only required to store the
+///     most recent 255 blocks of the chain since as far as execution is
+///     concerned, only those blocks are accessed. Practically, however, clients
+///     should store more blocks to handle reorgs.
+///
+///     Parameters
+///     ----------
+///     chain :
+///         History and current state.
+///     block :
+///         Block to apply to `chain`.
+///
+pub fn state_transition(chain: &mut BlockChain, block: Block) -> Result<(), EthereumException> {
+    // should be there one block
+    let parent_header = chain.blocks.last().unwrap().header.clone();
 
-// ///
-// ///     Verifies a block header.
-// ///
-// ///     In order to consider a block's header valid, the logic for the
-// ///     quantities in the header should match the logic for the block itself.
-// ///     For example the header timestamp should be greater than the block's parent
-// ///     timestamp because the block was created *after* the parent block.
-// ///     Additionally, the block's number should be directly folowing the parent
-// ///     block's number since it is the next block in the sequence.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     header :
-// ///         Header to check for correctness.
-// ///     parent_header :
-// ///         Parent Header of the header to check for correctness
-// ///
-// pub fn validate_header(header: Header, parent_header: Header) -> Result<(), Error> {
-//     ensure(header.timestamp > parent_header.timestamp, InvalidBlock)?;
-//     ensure(header.number == parent_header.number + 1, InvalidBlock)?;
-//     ensure(check_gas_limit(header.gas_limit, parent_header.gas_limit)?, InvalidBlock)?;
-//     ensure(len(header.extra_data)? <= 32, InvalidBlock)?;
-//     block_difficulty = calculate_block_difficulty(header.number, header.timestamp, parent_header.timestamp, parent_header.difficulty)?;
-//     ensure(header.difficulty == block_difficulty, InvalidBlock)?;
-//     block_parent_hash = keccak256(rlp.encode(parent_header)?)?;
-//     ensure(header.parent_hash == block_parent_hash, InvalidBlock)?;
-//     validate_proof_of_work(header)?;
-// }
+    validate_header(&block.header, parent_header)?;
+    validate_ommers(&block.ommers, block.header.clone(), chain)?;
+    let (gas_used, transactions_root, receipt_root, block_logs_bloom, state) = apply_body(&chain.state, get_last_256_block_hashes(chain)?, &block.header.coinbase, &block.header.number, &block.header.gas_limit, &block.header.timestamp, &block.header.difficulty, &block.transactions, &block.ommers)?;
+
+    assert!(gas_used == block.header.gas_used, "InvalidBlock");
+    assert!(transactions_root == block.header.transactions_root, "InvalidBlock");
+    assert!(state_root(&state) == block.header.state_root, "InvalidBlock");
+    assert!(receipt_root == block.header.receipt_root, "InvalidBlock");
+    assert!(block_logs_bloom == block.header.bloom, "InvalidBlock");
+    
+    chain.blocks.push(block);
+    if chain.blocks.len() > 255 {
+        // remove first 255 blocks
+        chain.blocks.drain(0..255);
+    }
+
+    Ok(())
+}
+
+///
+///     Verifies a block header.
+///
+///     In order to consider a block's header valid, the logic for the
+///     quantities in the header should match the logic for the block itself.
+///     For example the header timestamp should be greater than the block's parent
+///     timestamp because the block was created *after* the parent block.
+///     Additionally, the block's number should be directly folowing the parent
+///     block's number since it is the next block in the sequence.
+///
+///     Parameters
+///     ----------
+///     header :
+///         Header to check for correctness.
+///     parent_header :
+///         Parent Header of the header to check for correctness
+///
+pub fn validate_header(header: &Header, parent_header: Header) -> Result<(), EthereumException> {
+    assert!(header.timestamp > parent_header.timestamp, "InvalidBlock");
+    let parent_header_number = parent_header.number.clone();
+    assert!(header.number == parent_header_number.add(1u64), "InvalidBlock");
+    assert!(check_gas_limit(&header.gas_limit, &parent_header.gas_limit)?, "InvalidBlock");
+    assert!(header.extra_data.len() <= 32, "InvalidBlock");
+    let block_difficulty = calculate_block_difficulty(&header.number, &header.timestamp, &parent_header.timestamp, &parent_header.difficulty)?;
+    assert!(header.difficulty == block_difficulty, "InvalidBlock");
+    let block_parent_hash = keccak256(Box::leak(rlp::encode(&parent_header)));
+    assert!(header.parent_hash == block_parent_hash, "InvalidBlock");
+    validate_proof_of_work(header)?;
+
+    Ok(())
+}
 
 // ///
 // ///     Generate rlp hash of the header which is to be used for Proof-of-Work
@@ -198,27 +214,28 @@ pub struct BlockChain {
 //     return Ok(rlp.rlp_hash(header_data_without_pow_artefacts)?);
 // }
 
-// ///
-// ///     Validates the Proof of Work constraints.
-// ///
-// ///     In order to verify that a miner's proof-of-work is valid for a block, a
-// ///     ``mix-digest`` and ``result`` are calculated using the ``hashimoto_light``
-// ///     hash function. The mix digest is a hash of the header and the nonce that
-// ///     is passed through and it confirms whether or not proof-of-work was done
-// ///     on the correct block. The result is the actual hash value of the block.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     header :
-// ///         Header of interest.
-// ///
-// pub fn validate_proof_of_work(header: Header) -> Result<(), Error> {
-//     header_hash = generate_header_hash_for_pow(header)?;
-//     cache = generate_cache(header.number)?;
-//     (mix_digest, result) = hashimoto_light(header_hash, header.nonce, cache, dataset_size(header.number)?)?;
-//     ensure(mix_digest == header.mix_digest, InvalidBlock)?;
-//     ensure(Uint.from_be_bytes(result)? <= (U256_CEIL_VALUE).floordiv(header.difficulty), InvalidBlock)?;
-// }
+///
+///     Validates the Proof of Work constraints.
+///
+///     In order to verify that a miner's proof-of-work is valid for a block, a
+///     ``mix-digest`` and ``result`` are calculated using the ``hashimoto_light``
+///     hash function. The mix digest is a hash of the header and the nonce that
+///     is passed through and it confirms whether or not proof-of-work was done
+///     on the correct block. The result is the actual hash value of the block.
+///
+///     Parameters
+///     ----------
+///     header :
+///         Header of interest.
+///
+pub fn validate_proof_of_work(header: &Header) -> Result<(), EthereumException> {
+    // header_hash = generate_header_hash_for_pow(header)?;
+    // cache = generate_cache(header.number)?;
+    // (mix_digest, result) = hashimoto_light(header_hash, header.nonce, cache, dataset_size(header.number)?)?;
+    // ensure(mix_digest == header.mix_digest, InvalidBlock)?;
+    // ensure(Uint.from_be_bytes(result)? <= (U256_CEIL_VALUE).floordiv(header.difficulty), InvalidBlock)?;
+    todo!()
+}
 
 // ///
 // ///     Check if the transaction is includable in the block.
@@ -271,126 +288,128 @@ pub struct BlockChain {
 //     return Ok(receipt);
 // }
 
-// ///
-// ///     Executes a block.
-// ///
-// ///     Many of the contents of a block are stored in data structures called
-// ///     tries. There is a transactions trie which is similar to a ledger of the
-// ///     transactions stored in the current block. There is also a receipts trie
-// ///     which stores the results of executing a transaction, like the post state
-// ///     and gas used. This function creates and executes the block that is to be
-// ///     added to the chain.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     state :
-// ///         Current account state.
-// ///     block_hashes :
-// ///         List of hashes of the previous 256 blocks in the order of
-// ///         increasing block number.
-// ///     coinbase :
-// ///         Address of account which receives block reward and transaction fees.
-// ///     block_number :
-// ///         Position of the block within the chain.
-// ///     block_gas_limit :
-// ///         Initial amount of gas available for execution in this block.
-// ///     block_time :
-// ///         Time the block was produced, measured in seconds since the epoch.
-// ///     block_difficulty :
-// ///         Difficulty of the block.
-// ///     transactions :
-// ///         Transactions included in the block.
-// ///     ommers :
-// ///         Headers of ancestor blocks which are not direct parents (formerly
-// ///         uncles.)
-// ///
-// ///     Returns
-// ///     -------
-// ///     gas_available : `ethereum.base_types.Uint`
-// ///         Remaining gas after all transactions have been executed.
-// ///     transactions_root : `ethereum.fork_types.Root`
-// ///         Trie root of all the transactions in the block.
-// ///     receipt_root : `ethereum.fork_types.Root`
-// ///         Trie root of all the receipts in the block.
-// ///     block_logs_bloom : `Bloom`
-// ///         Logs bloom of all the logs included in all the transactions of the
-// ///         block.
-// ///     state : `ethereum.fork_types.State`
-// ///         State after all transactions have been executed.
-// ///
-// pub fn apply_body(state: State, block_hashes: List[Hash32], coinbase: Address, block_number: Uint, block_gas_limit: Uint, block_time: U256, block_difficulty: Uint, transactions: Tuple[Transaction][...], ommers: Tuple[Header][...]) -> Result<Tuple[Uint][Root][Root][Bloom][State], Error> {
-//     gas_available = block_gas_limit;
-//     // TypedAssignment unsupported
-//     // TypedAssignment unsupported
-//     // TypedAssignment unsupported
-//     for (i, tx) in enumerate(transactions)? {
-//         trie_set(transactions_trie, rlp.encode(Uint(i)?)?, tx)?;
-//         sender_address = check_transaction(tx, gas_available)?;
-//         env = vm.Environment(caller = sender_address, origin = sender_address, block_hashes = block_hashes, coinbase = coinbase, number = block_number, gas_limit = block_gas_limit, gas_price = tx.gas_price, time = block_time, difficulty = block_difficulty, state = state)?;
-//         (gas_used, logs) = process_transaction(env, tx)?;
-//         gas_available -= gas_used;
-//         receipt = make_receipt(tx, state_root(state)?, block_gas_limit - gas_available, logs)?;
-//         trie_set(receipts_trie, rlp.encode(Uint(i)?)?, receipt)?;
-//         block_logs += logs;
-//     }
-//     pay_rewards(state, block_number, coinbase, ommers)?;
-//     block_gas_used = block_gas_limit - gas_available;
-//     block_logs_bloom = logs_bloom(block_logs)?;
-//     return Ok((block_gas_used, root(transactions_trie)?, root(receipts_trie)?, block_logs_bloom, state));
-// }
+///
+///     Executes a block.
+///
+///     Many of the contents of a block are stored in data structures called
+///     tries. There is a transactions trie which is similar to a ledger of the
+///     transactions stored in the current block. There is also a receipts trie
+///     which stores the results of executing a transaction, like the post state
+///     and gas used. This function creates and executes the block that is to be
+///     added to the chain.
+///
+///     Parameters
+///     ----------
+///     state :
+///         Current account state.
+///     block_hashes :
+///         List of hashes of the previous 256 blocks in the order of
+///         increasing block number.
+///     coinbase :
+///         Address of account which receives block reward and transaction fees.
+///     block_number :
+///         Position of the block within the chain.
+///     block_gas_limit :
+///         Initial amount of gas available for execution in this block.
+///     block_time :
+///         Time the block was produced, measured in seconds since the epoch.
+///     block_difficulty :
+///         Difficulty of the block.
+///     transactions :
+///         Transactions included in the block.
+///     ommers :
+///         Headers of ancestor blocks which are not direct parents (formerly
+///         uncles.)
+///
+///     Returns
+///     -------
+///     gas_available : `ethereum.base_types.Uint`
+///         Remaining gas after all transactions have been executed.
+///     transactions_root : `ethereum.fork_types.Root`
+///         Trie root of all the transactions in the block.
+///     receipt_root : `ethereum.fork_types.Root`
+///         Trie root of all the receipts in the block.
+///     block_logs_bloom : `Bloom`
+///         Logs bloom of all the logs included in all the transactions of the
+///         block.
+///     state : `ethereum.fork_types.State`
+///         State after all transactions have been executed.
+///
+pub fn apply_body(state: &State, block_hashes: Vec<Hash32>, coinbase: &Address, block_number: &Uint, block_gas_limit: &Uint, block_time: &U256, block_difficulty: &Uint, transactions: &Vec<Transaction>, ommers: &Vec<Header>) -> Result<(Uint, Root, Root, Bloom, State), EthereumException> {
+    // gas_available = block_gas_limit;
+    // // TypedAssignment unsupported
+    // // TypedAssignment unsupported
+    // // TypedAssignment unsupported
+    // for (i, tx) in enumerate(transactions)? {
+    //     trie_set(transactions_trie, rlp.encode(Uint(i)?)?, tx)?;
+    //     sender_address = check_transaction(tx, gas_available)?;
+    //     env = vm.Environment(caller = sender_address, origin = sender_address, block_hashes = block_hashes, coinbase = coinbase, number = block_number, gas_limit = block_gas_limit, gas_price = tx.gas_price, time = block_time, difficulty = block_difficulty, state = state)?;
+    //     (gas_used, logs) = process_transaction(env, tx)?;
+    //     gas_available -= gas_used;
+    //     receipt = make_receipt(tx, state_root(state)?, block_gas_limit - gas_available, logs)?;
+    //     trie_set(receipts_trie, rlp.encode(Uint(i)?)?, receipt)?;
+    //     block_logs += logs;
+    // }
+    // pay_rewards(state, block_number, coinbase, ommers)?;
+    // block_gas_used = block_gas_limit - gas_available;
+    // block_logs_bloom = logs_bloom(block_logs)?;
+    // return Ok((block_gas_used, root(transactions_trie)?, root(receipts_trie)?, block_logs_bloom, state));
+    todo!()
+}
 
-// ///
-// ///     Validates the ommers mentioned in the block.
-// ///
-// ///     An ommer block is a block that wasn't canonically added to the
-// ///     blockchain because it wasn't validated as fast as the canonical block
-// ///     but was mined at the same time.
-// ///
-// ///     To be considered valid, the ommers must adhere to the rules defined in
-// ///     the Ethereum protocol. The maximum amount of ommers is 2 per block and
-// ///     there cannot be duplicate ommers in a block. Many of the other ommer
-// ///     contraints are listed in the in-line comments of this function.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     ommers :
-// ///         List of ommers mentioned in the current block.
-// ///     block_header:
-// ///         The header of current block.
-// ///     chain :
-// ///         History and current state.
-// ///
-// pub fn validate_ommers(ommers: Tuple[Header][...], block_header: Header, chain: BlockChain) -> Result<(), Error> {
-//     block_hash = rlp.rlp_hash(block_header)?;
-//     ensure(rlp.rlp_hash(ommers)? == block_header.ommers_hash, InvalidBlock)?;
-//     if len(ommers)? == 0 {
-//         return;
-//     }
-//     for ommer in ommers {
-//         ensure(1 <= ommer.number < block_header.number, InvalidBlock)?;
-//         ommer_parent_header = chain.blocks[-(block_header.number - ommer.number) - 1].header;
-//         validate_header(ommer, ommer_parent_header)?;
-//     }
-//     ensure(len(ommers)? <= 2, InvalidBlock)?;
-//     ommers_hashes = /* ListComp unsupported */;
-//     ensure(len(ommers_hashes)? == len(set(ommers_hashes)?)?, InvalidBlock)?;
-//     recent_canonical_blocks = chain.blocks[-(MAX_OMMER_DEPTH + 1)..];
-//     recent_canonical_block_hashes = /* SetComp unsupported */;
-//     // TypedAssignment unsupported
-//     for block in recent_canonical_blocks {
-//         recent_ommers_hashes = recent_ommers_hashes.union(/* SetComp unsupported */)?;
-//     }
-//     for (ommer_index, ommer) in enumerate(ommers)? {
-//         ommer_hash = ommers_hashes[ommer_index];
-//         ensure(ommer_hash != block_hash, InvalidBlock)?;
-//         ensure(!(ommer_hash).contains(recent_canonical_block_hashes), InvalidBlock)?;
-//         ensure(!(ommer_hash).contains(recent_ommers_hashes), InvalidBlock)?;
-//         ommer_age = block_header.number - ommer.number;
-//         ensure(1 <= ommer_age <= MAX_OMMER_DEPTH, InvalidBlock)?;
-//         ensure((ommer.parent_hash).contains(recent_canonical_block_hashes), InvalidBlock)?;
-//         ensure(ommer.parent_hash != block_header.parent_hash, InvalidBlock)?;
-//     }
-// }
+///
+///     Validates the ommers mentioned in the block.
+///
+///     An ommer block is a block that wasn't canonically added to the
+///     blockchain because it wasn't validated as fast as the canonical block
+///     but was mined at the same time.
+///
+///     To be considered valid, the ommers must adhere to the rules defined in
+///     the Ethereum protocol. The maximum amount of ommers is 2 per block and
+///     there cannot be duplicate ommers in a block. Many of the other ommer
+///     contraints are listed in the in-line comments of this function.
+///
+///     Parameters
+///     ----------
+///     ommers :
+///         List of ommers mentioned in the current block.
+///     block_header:
+///         The header of current block.
+///     chain :
+///         History and current state.
+///
+pub fn validate_ommers(ommers: &Vec<Header>, block_header: Header, chain: &BlockChain) -> Result<(), EthereumException> {
+    // block_hash = rlp.rlp_hash(block_header)?;
+    // ensure(rlp.rlp_hash(ommers)? == block_header.ommers_hash, InvalidBlock)?;
+    // if len(ommers)? == 0 {
+    //     return;
+    // }
+    // for ommer in ommers {
+    //     ensure(1 <= ommer.number < block_header.number, InvalidBlock)?;
+    //     ommer_parent_header = chain.blocks[-(block_header.number - ommer.number) - 1].header;
+    //     validate_header(ommer, ommer_parent_header)?;
+    // }
+    // ensure(len(ommers)? <= 2, InvalidBlock)?;
+    // ommers_hashes = /* ListComp unsupported */;
+    // ensure(len(ommers_hashes)? == len(set(ommers_hashes)?)?, InvalidBlock)?;
+    // recent_canonical_blocks = chain.blocks[-(MAX_OMMER_DEPTH + 1)..];
+    // recent_canonical_block_hashes = /* SetComp unsupported */;
+    // // TypedAssignment unsupported
+    // for block in recent_canonical_blocks {
+    //     recent_ommers_hashes = recent_ommers_hashes.union(/* SetComp unsupported */)?;
+    // }
+    // for (ommer_index, ommer) in enumerate(ommers)? {
+    //     ommer_hash = ommers_hashes[ommer_index];
+    //     ensure(ommer_hash != block_hash, InvalidBlock)?;
+    //     ensure(!(ommer_hash).contains(recent_canonical_block_hashes), InvalidBlock)?;
+    //     ensure(!(ommer_hash).contains(recent_ommers_hashes), InvalidBlock)?;
+    //     ommer_age = block_header.number - ommer.number;
+    //     ensure(1 <= ommer_age <= MAX_OMMER_DEPTH, InvalidBlock)?;
+    //     ensure((ommer.parent_hash).contains(recent_canonical_block_hashes), InvalidBlock)?;
+    //     ensure(ommer.parent_hash != block_header.parent_hash, InvalidBlock)?;
+    // }
+    todo!()
+}
 
 // ///
 // ///     Pay rewards to the block miner as well as the ommers miners.
@@ -628,86 +647,88 @@ pub struct BlockChain {
 //     return Ok(keccak256(rlp.encode(header)?)?);
 // }
 
-// ///
-// ///     Validates the gas limit for a block.
-// ///
-// ///     The bounds of the gas limit, ``max_adjustment_delta``, is set as the
-// ///     quotient of the parent block's gas limit and the
-// ///     ``GAS_LIMIT_ADJUSTMENT_FACTOR``. Therefore, if the gas limit that is
-// ///     passed through as a parameter is greater than or equal to the *sum* of
-// ///     the parent's gas and the adjustment delta then the limit for gas is too
-// ///     high and fails this function's check. Similarly, if the limit is less
-// ///     than or equal to the *difference* of the parent's gas and the adjustment
-// ///     delta *or* the predefined ``GAS_LIMIT_MINIMUM`` then this function's
-// ///     check fails because the gas limit doesn't allow for a sufficient or
-// ///     reasonable amount of gas to be used on a block.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     gas_limit :
-// ///         Gas limit to validate.
-// ///
-// ///     parent_gas_limit :
-// ///         Gas limit of the parent block.
-// ///
-// ///     Returns
-// ///     -------
-// ///     check : `bool`
-// ///         True if gas limit constraints are satisfied, False otherwise.
-// ///
-// pub fn check_gas_limit(gas_limit: Uint, parent_gas_limit: Uint) -> Result<bool, Error> {
-//     max_adjustment_delta = (parent_gas_limit).floordiv(GAS_LIMIT_ADJUSTMENT_FACTOR);
-//     if gas_limit >= parent_gas_limit + max_adjustment_delta {
-//         return Ok(false);
-//     }
-//     if gas_limit <= parent_gas_limit - max_adjustment_delta {
-//         return Ok(false);
-//     }
-//     if gas_limit < GAS_LIMIT_MINIMUM {
-//         return Ok(false);
-//     }
-//     return Ok(true);
-// }
+///
+///     Validates the gas limit for a block.
+///
+///     The bounds of the gas limit, ``max_adjustment_delta``, is set as the
+///     quotient of the parent block's gas limit and the
+///     ``GAS_LIMIT_ADJUSTMENT_FACTOR``. Therefore, if the gas limit that is
+///     passed through as a parameter is greater than or equal to the *sum* of
+///     the parent's gas and the adjustment delta then the limit for gas is too
+///     high and fails this function's check. Similarly, if the limit is less
+///     than or equal to the *difference* of the parent's gas and the adjustment
+///     delta *or* the predefined ``GAS_LIMIT_MINIMUM`` then this function's
+///     check fails because the gas limit doesn't allow for a sufficient or
+///     reasonable amount of gas to be used on a block.
+///
+///     Parameters
+///     ----------
+///     gas_limit :
+///         Gas limit to validate.
+///
+///     parent_gas_limit :
+///         Gas limit of the parent block.
+///
+///     Returns
+///     -------
+///     check : `bool`
+///         True if gas limit constraints are satisfied, False otherwise.
+///
+pub fn check_gas_limit(gas_limit: &Uint, parent_gas_limit: &Uint) -> Result<bool, EthereumException> {
+    // max_adjustment_delta = (parent_gas_limit).floordiv(GAS_LIMIT_ADJUSTMENT_FACTOR);
+    // if gas_limit >= parent_gas_limit + max_adjustment_delta {
+    //     return Ok(false);
+    // }
+    // if gas_limit <= parent_gas_limit - max_adjustment_delta {
+    //     return Ok(false);
+    // }
+    // if gas_limit < GAS_LIMIT_MINIMUM {
+    //     return Ok(false);
+    // }
+    // return Ok(true);
+    todo!()
+}
 
-// ///
-// ///     Computes difficulty of a block using its header and
-// ///     parent header.
-// ///
-// ///     The difficulty of a block is determined by the time the block was
-// ///     created after its parent. If a block's timestamp is more than 13
-// ///     seconds after its parent block then its difficulty is set as the
-// ///     difference between the parent's difficulty and the
-// ///     ``max_adjustment_delta``. Otherwise, if the time between parent and
-// ///     child blocks is too small (under 13 seconds) then, to avoid mass
-// ///     forking, the block's difficulty is set to the sum of the delta and
-// ///     the parent's difficulty.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     block_number :
-// ///         Block number of the block.
-// ///     block_timestamp :
-// ///         Timestamp of the block.
-// ///     parent_timestamp :
-// ///         Timestamp of the parent block.
-// ///     parent_difficulty :
-// ///         difficulty of the parent block.
-// ///
-// ///     Returns
-// ///     -------
-// ///     difficulty : `ethereum.base_types.Uint`
-// ///         Computed difficulty for a block.
-// ///
-// pub fn calculate_block_difficulty(block_number: Uint, block_timestamp: U256, parent_timestamp: U256, parent_difficulty: Uint) -> Result<Uint, Error> {
-//     max_adjustment_delta = (parent_difficulty).floordiv(Uint(2048)?);
-//     if block_timestamp < parent_timestamp + 13 {
-//         difficulty = parent_difficulty + max_adjustment_delta;
-//     } else {
-//         difficulty = parent_difficulty - max_adjustment_delta;
-//     }
-//     num_bomb_periods = (int(block_number)?).floordiv(100000) - 2;
-//     if num_bomb_periods >= 0 {
-//         difficulty += (2).pow(num_bomb_periods);
-//     }
-//     return Ok(max(difficulty, MINIMUM_DIFFICULTY)?);
-// }
+///
+///     Computes difficulty of a block using its header and
+///     parent header.
+///
+///     The difficulty of a block is determined by the time the block was
+///     created after its parent. If a block's timestamp is more than 13
+///     seconds after its parent block then its difficulty is set as the
+///     difference between the parent's difficulty and the
+///     ``max_adjustment_delta``. Otherwise, if the time between parent and
+///     child blocks is too small (under 13 seconds) then, to avoid mass
+///     forking, the block's difficulty is set to the sum of the delta and
+///     the parent's difficulty.
+///
+///     Parameters
+///     ----------
+///     block_number :
+///         Block number of the block.
+///     block_timestamp :
+///         Timestamp of the block.
+///     parent_timestamp :
+///         Timestamp of the parent block.
+///     parent_difficulty :
+///         difficulty of the parent block.
+///
+///     Returns
+///     -------
+///     difficulty : `ethereum.base_types.Uint`
+///         Computed difficulty for a block.
+///
+pub fn calculate_block_difficulty(block_number: &Uint, block_timestamp: &U256, parent_timestamp: &U256, parent_difficulty: &Uint) -> Result<Uint, EthereumException> {
+    // max_adjustment_delta = (parent_difficulty).floordiv(Uint(2048)?);
+    // if block_timestamp < parent_timestamp + 13 {
+    //     difficulty = parent_difficulty + max_adjustment_delta;
+    // } else {
+    //     difficulty = parent_difficulty - max_adjustment_delta;
+    // }
+    // num_bomb_periods = (int(block_number)?).floordiv(100000) - 2;
+    // if num_bomb_periods >= 0 {
+    //     difficulty += (2).pow(num_bomb_periods);
+    // }
+    // return Ok(max(difficulty, MINIMUM_DIFFICULTY)?);
+    todo!()
+}
