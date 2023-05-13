@@ -94,7 +94,7 @@ pub fn test_trie() -> Result<(), EthereumException> {
 
 
 pub fn load_tests(path: &str) -> Result<serde_json::Value, EthereumException> {
-    let ethereum_tests_path = "./tests/fixtures/ethereum_tests";
+    let ethereum_tests_path = "../tests/";
     println!("{:?}", std::fs::canonicalize(&"./"));
     let path = format!("{ethereum_tests_path}/TrieTests/{path}");
     let json = std::fs::read_to_string(&path)

@@ -143,7 +143,7 @@ pub fn encode_internal_node<V : EncodeRlp>(node: &InternalNode<V>) -> Bytes {
             encodes.extend_from_slice(node.value.encode().as_ref());
         },
         InternalNode::Null => {
-            encodes.extend_from_slice([].encode().as_ref());
+            encodes.extend_from_slice([0_u8; 0].encode().as_ref());
         },
     };
 
