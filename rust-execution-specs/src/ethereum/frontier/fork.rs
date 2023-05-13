@@ -42,7 +42,7 @@ const MAX_OMMER_DEPTH: u8 = 6;
 ///     
 pub struct BlockChain {
     blocks: Vec<Block>,
-    state: State,
+    pub state: State,
     chain_id: U64,
 }
 

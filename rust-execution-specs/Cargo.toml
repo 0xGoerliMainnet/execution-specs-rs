@@ -10,3 +10,8 @@ serde = { version = "1.0.162" }
 serde_json = "1.0.96"
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
 num-traits = "0.2.15"
+clap = { version = "4.2.7", features = ["derive"] }
+
+[[bin]]
+name = "sync"
+path = "src/ethereum_spec_tools/sync.rs"

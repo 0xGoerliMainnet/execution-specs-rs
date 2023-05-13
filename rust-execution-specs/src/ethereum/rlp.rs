@@ -1,5 +1,3 @@
-use std::usize;
-
 ///
 /// .. _rlp:
 ///
@@ -21,7 +19,7 @@ use std::usize;
 // use ::ethereum::crypto::hash::{Hash32, keccak256};
 // use ::ethereum::exceptions::{RLPDecodingError, RLPEncodingError};
 // use ::ethereum::utils::ensure::{ensure};
-use super::base_types::{strip_leading_zeros, Bytes, Uint, U32, U64};
+use super::{base_types::{strip_leading_zeros, Bytes, Uint, U32, U64}, frontier::fork_types::{keccak256, Hash32}};
 
 pub trait EncodeRlp {
     // A somewhat suboptimal RLP encoder.
@@ -147,6 +145,12 @@ impl<const N: usize, T: EncodeRlp> EncodeRlp for [T; N] {
     }
 }
 
+impl EncodeRlp for () {
+    fn encode(&self) -> Bytes {
+        encode_sequence(&[])
+    }
+}
+
 // } else if is_dataclass(raw_data)? {
 //     return Ok(encode(astuple(raw_data)?)?);
 macro_rules! impl_tuples {
@@ -251,4 +255,10 @@ pub fn encode_sequence(joined_encodings: &[u8]) -> Bytes {
             .chain(joined_encodings.iter().copied())
             .collect()
     }
+}
+
+
+pub fn rlp_hash<R: ?Sized + EncodeRlp>(raw_data: &R) -> Hash32{
+    let data = encode(raw_data);
+    return keccak256(&data)
 }
