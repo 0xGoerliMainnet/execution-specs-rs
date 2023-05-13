@@ -1,5 +1,4 @@
-//! EVM Instruction Encoding (Opcodes)
-//! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//! # EVM Instruction Encoding (Opcodes)
 //!
 //! .. contents:: Table of Contents
 //!     :backlinks: none

@@ -1,42 +1,32 @@
-///
-/// .. _rlp:
-///
-/// Recursive Length Prefix (RLP) Encoding
-/// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-///
-/// .. contents:: Table of Contents
-///     :backlinks: none
-///     :local:
-///
-/// Introduction
-/// ------------
-///
-/// Defines the serialization and deserialization format used throughout Ethereum.
-///
-// use ::__future__::{annotations};
-// use ::dataclasses::{astuple, fields, is_dataclass};
-// use ::typing::{Any, List, Sequence, Tuple, Type, TypeVar, Union};
-// use ::ethereum::crypto::hash::{Hash32, keccak256};
-// use ::ethereum::exceptions::{RLPDecodingError, RLPEncodingError};
-// use ::ethereum::utils::ensure::{ensure};
+//! # Recursive Length Prefix (RLP) Encoding
+//!
+//! .. contents:: Table of Contents
+//!     :backlinks: none
+//!     :local:
+//!
+//! ## Introduction
+//!
+//! Defines the serialization and deserialization format used throughout Ethereum.
+//!
+
 use super::{base_types::{strip_leading_zeros, Bytes, Uint, U32, U64}, frontier::fork_types::{keccak256, Hash32}};
 
+/// Trait for converting objects to RLP-encoded byte arrays.
 pub trait EncodeRlp {
-    // A somewhat suboptimal RLP encoder.
+    /// Encode an object into some Bytes.
     fn encode(&self) -> Bytes;
 }
 
 ///
 ///     Encodes `raw_data` into a sequence of bytes using RLP.
 ///
-///     Parameters
-///     ----------
+///     ## Parameters
+///
 ///     raw_data :
 ///         A `Bytes`, `Uint`, `Uint256` or sequence of `RLP` encodable
 ///         objects.
 ///
-///     Returns
-///     -------
+///     ## Returns
 ///     encoded : `ethereum.base_types.Bytes`
 ///         The RLP encoded bytes representing `raw_data`.
 ///

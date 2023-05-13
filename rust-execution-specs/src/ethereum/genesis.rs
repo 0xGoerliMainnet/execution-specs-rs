@@ -1,17 +1,15 @@
-///
-/// Genesis Configuration
-/// ^^^^^^^^^^^^^^^^^^^^^
-///
-/// .. contents:: Table of Contents
-///     :backlinks: none
-///     :local:
-///
-/// Introduction
-/// ------------
-///
-/// Functionalities and entities to obtain the genesis configurations for
-/// different chains.
-///
+//!
+//! # Genesis Configuration
+//!
+//! .. contents:: Table of Contents
+//!     :backlinks: none
+//!     :local:
+//!
+//! ## Introduction
+//!
+//! Functionalities and entities to obtain the genesis configurations for
+//! different chains.
+//!
 use std::{collections::HashMap, todo};
 
 use num_bigint::BigUint;

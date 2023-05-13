@@ -1,10 +1,11 @@
-/// 
-/// Ethereum Frontier Hardfork
-/// ^^^^^^^^^^^^^^^^^^^^^^^^^^
-/// 
-/// The first Ethereum hardfork.
-/// 
+//! 
+//! # Ethereum Frontier Hardfork
+//! 
+//! The first Ethereum hardfork.
+//! 
 
+
+/// Where it all started.
 pub const MAINNET_FORK_BLOCK : u32 = 0;
 
 pub mod fork_types;
