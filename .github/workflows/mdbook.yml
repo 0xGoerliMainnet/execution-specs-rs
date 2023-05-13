@@ -28,6 +28,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: doc
+          working-directory: rust-execution-specs
       - name: Copy docs
         run: cp -r rust-execution-specs/target/doc mdbook/src/docs
 
@@ -68,4 +69,5 @@ jobs:
         uses: actions/deploy-pages@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: mdbook
           publish_dir: /
