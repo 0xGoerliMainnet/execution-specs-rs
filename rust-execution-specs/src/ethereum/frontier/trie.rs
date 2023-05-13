@@ -169,7 +169,7 @@ pub fn encode_node<N : Node>(node: &N) -> Bytes {
 /// 
 ///     The Merkle Trie.
 ///     
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Trie<K, V>
 where
     K: Key, V: Node,
@@ -477,5 +477,3 @@ where
 //     }
 //     return Ok(BranchNode(/* ListComp unsupported */, value)?);
 // }
-
-

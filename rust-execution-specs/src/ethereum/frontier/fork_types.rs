@@ -59,11 +59,11 @@ pub struct Transaction {
 /// 
 ///     State associated with an address.
 ///
-#[derive(Debug, Default, PartialEq)]     
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Account {
-    nonce: Uint,
-    balance: U256,
-    code: Bytes,
+    pub nonce: Uint,
+    pub balance: U256,
+    pub code: Bytes,
 }
 
 
@@ -152,5 +152,3 @@ pub struct Receipt {
 
 impl Receipt {
 }
-
-
