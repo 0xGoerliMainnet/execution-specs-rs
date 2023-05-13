@@ -19,6 +19,7 @@ pub mod comparison;
 pub mod control_flow;
 pub mod environment;
 pub mod keccak;
+pub mod log;
 
 /// Enum for EVM Opcodes
 #[repr(usize)]
