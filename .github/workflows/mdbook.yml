@@ -27,7 +27,7 @@ jobs:
           toolchain: stable
       - name: Generate Docs
         working-directory: rust-execution-specs
-        run: cargo docs
+        run: cargo doc
       - name: Copy docs
         run: cp -r rust-execution-specs/target/doc mdbook/src/docs
 
