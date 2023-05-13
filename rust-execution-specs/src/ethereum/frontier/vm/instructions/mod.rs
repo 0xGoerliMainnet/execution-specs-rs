@@ -13,6 +13,7 @@
 // use super::Evm;
 
 pub mod arithmetic;
+pub mod bitwise;
 
 /// Enum for EVM Opcodes
 #[repr(usize)]
