@@ -48,6 +48,12 @@ impl Node for String {
     }
 }
 
+impl Node for () {
+    fn encode<F : Fn(&Address) -> Root>(&self, _f: F) -> Bytes {
+        Bytes::default()
+    }
+}
+
 impl Node for Option<Account> {
     fn encode<F : Fn(&Address) -> Root>(&self, _f: F) -> Bytes {
         Bytes::default()
@@ -426,11 +432,12 @@ where
 ///     root : `.fork_types.Root`
 ///         MPT root of the underlying key-value pairs.
 ///     
-pub fn root<K, V, F : Fn(&Address) -> Root + Clone>(trie: &Trie<K, V>, f: F) -> Root
+pub fn root<K, V, F : Fn(&Address) -> Root + Clone>(trie: &Trie<K, V>, f: Option<F>) -> Root
 where
     K: Key, V: Node,
 {
-    let _obj = _prepare_trie(&trie, f).unwrap();
+    // TODO take care of option for function
+    let _obj = _prepare_trie(&trie, f.unwrap()).unwrap();
     todo!();
     // root_node = encode_internal_node(patricialize(obj, Uint(0)?)?)?;
     // if len(rlp.encode(root_node)?)? < 32 {

@@ -251,7 +251,7 @@ pub fn storage_root(state: &State, address: &Address) -> Root {
     let z = state
         .storage_tries
         .get(address)
-        .map(|trie| trie::root(trie, |_| Root::default()))
+        .map(|trie| trie::root(trie, Some(|_: &Address| Root::default())))
         .unwrap()
         // .unwrap_or(trie::EMPTY_TRIE_ROOT.clone());
     ;
@@ -274,7 +274,7 @@ pub fn state_root(state: &State) -> Root {
     assert!(state.snapshots.is_empty());
 
     let get_state_root = |address: &Address| -> Root { storage_root(state, address) };
-    trie::root(&state.main_trie, get_state_root)
+    trie::root(&state.main_trie, Some(get_state_root))
 }
 
 /// Checks if an account exists in the state trie
