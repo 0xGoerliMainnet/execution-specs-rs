@@ -1,13 +1,7 @@
 //! 
-//! Ensure (Assertion) Utilities
-//! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//! # Ensure (Assertion) Utilities
 //! 
-//! .. contents:: Table of Contents
-//!     :backlinks: none
-//!     :local:
-//! 
-//! Introduction
-//! ------------
+//! ## Introduction
 //! 
 //! Functions that simplify checking assertions and raising exceptions.
 //! 

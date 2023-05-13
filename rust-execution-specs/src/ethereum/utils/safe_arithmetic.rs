@@ -1,13 +1,7 @@
 //! 
-//! Safe Arithmetic for U256 Integer Type
-//! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//! # Safe Arithmetic for U256 Integer Type
 //! 
-//! .. contents:: Table of Contents
-//!     :backlinks: none
-//!     :local:
-//! 
-//! Introduction
-//! ------------
+//! ## Introduction
 //! 
 //! Safe arithmetic utility functions for U256 integer type.
 //! 

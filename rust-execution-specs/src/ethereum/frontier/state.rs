@@ -1,13 +1,7 @@
 //!
-//! State
-//! ^^^^^
+//! # State
 //!
-//! .. contents:: Table of Contents
-//!     :backlinks: none
-//!     :local:
-//!
-//! Introduction
-//! ------------
+//! ## Introduction
 //!
 //! The state contains all information that is preserved between transactions.
 //!
@@ -16,13 +10,6 @@
 //! There is a distinction between an account that does not exist and
 //! `EMPTY_ACCOUNT`.
 //!
-
-// // use ::dataclasses::{dataclass, field};
-// // use ::typing::{Callable, Dict, List, Optional, Tuple};
-// // use ::ethereum::base_types::{U256, Bytes, Uint, modify};
-// // use ::ethereum::utils::ensure::{ensure};
-// // use super::fork_types::{EMPTY_ACCOUNT, Account, Address, Root};
-// // use super::trie::{EMPTY_TRIE_ROOT, Trie, copy_trie, root, trie_get, trie_set};
 
 use super::{
     fork_types::{Account, Address, Root, empty_account},

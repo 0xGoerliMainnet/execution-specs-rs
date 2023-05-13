@@ -1,12 +1,6 @@
-//! Ethereum Virtual Machine (EVM) Bitwise Instructions
-//! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//! # Ethereum Virtual Machine (EVM) Bitwise Instructions
 //!
-//! .. contents:: Table of Contents
-//!     :backlinks: none
-//!     :local:
-//!
-//! Introduction
-//! ------------
+//! ## Introduction
 //!
 //! Implementations of the EVM bitwise instructions.
 
