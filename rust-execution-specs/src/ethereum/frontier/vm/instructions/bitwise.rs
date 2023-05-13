@@ -12,9 +12,6 @@
 
 use super::super::{exceptions::Result, gas, stack, Evm};
 use crate::ethereum::base_types::U256;
-use crate::ethereum::utils::numeric::get_sign;
-use num_bigint::BigInt;
-use num_traits::Signed;
 
 /// Bitwise AND operation of the top 2 elements of the stack. Pushes the
 /// result back on the stack.
