@@ -16,6 +16,7 @@ pub mod arithmetic;
 pub mod bitwise;
 pub mod block;
 pub mod comparison;
+pub mod control_flow;
 
 /// Enum for EVM Opcodes
 #[repr(usize)]

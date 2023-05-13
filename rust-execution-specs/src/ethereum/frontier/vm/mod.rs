@@ -47,7 +47,7 @@ pub struct Evm {
     code: Bytes,
     gas_left: U256,
     env: Environment,
-    valid_jump_destinations: HashSet<usize>,
+    valid_jump_destinations: HashSet<U256>,
     logs: Vec<Log>,
     refund_counter: U256,
     running: bool,
