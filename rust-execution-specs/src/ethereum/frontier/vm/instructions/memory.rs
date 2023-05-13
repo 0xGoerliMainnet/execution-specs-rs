@@ -1,100 +1,115 @@
-// /// 
-// /// Ethereum Virtual Machine (EVM) Memory Instructions
-// /// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// /// 
-// /// .. contents:: Table of Contents
-// ///     :backlinks: none
-// ///     :local:
-// /// 
-// /// Introduction
-// /// ------------
-// /// 
-// /// Implementations of the EVM Memory instructions.
-// /// 
-// use ::ethereum::base_types::{U8_MAX_VALUE, U256, Bytes};
-// use super::super::::{Evm};
-// use super::super::gas::{GAS_BASE, GAS_VERY_LOW, calculate_gas_extend_memory, charge_gas};
-// use super::super::memory::{memory_read_bytes, memory_write};
-// use super::super::stack::{pop, push};
-// /// 
-// ///     Stores a word to memory.
-// ///     This also expands the memory, if the memory is
-// ///     insufficient to store the word.
-// /// 
-// ///     Parameters
-// ///     ----------
-// ///     evm :
-// ///         The current EVM frame.
-// /// 
-// ///     
-// pub fn mstore(evm: Evm) -> Result<(), Error> {
-//     start_position = pop(evm.stack)?;
-//     value = pop(evm.stack)?.to_be_bytes32()?;
-//     extend_memory = calculate_gas_extend_memory(evm.memory, [(start_position, U256(len(value)?)?)])?;
-//     charge_gas(evm, GAS_VERY_LOW + extend_memory.cost)?;
-//     evm.memory += [0] * extend_memory.expand_by;
-//     memory_write(evm.memory, start_position, value)?;
-//     evm.pc += 1;
-// }
+//! Ethereum Virtual Machine (EVM) Memory Instructions
+//! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//! 
+//! .. contents:: Table of Contents
+//!     :backlinks: none
+//!     :local:
+//! 
+//! Introduction
+//! ------------
+//! 
+//! Implementations of the EVM Memory instructions.
+
+use super::super::{exceptions::Result, gas, stack, Evm};
+use crate::ethereum::base_types::U256;
+use crate::ethereum::frontier::vm::memory::{memory_read_bytes, memory_write};
+
+/// Stores a word to memory.
+/// This also expands the memory, if the memory is
+/// insufficient to store the word.
+/// 
+/// Parameters
+/// ----------
+/// evm :
+///     The current EVM frame.
+pub fn mstore(evm: &mut Evm) -> Result<()> {
+    // STACK
+    let start_position = stack::pop(&mut evm.stack)?;
+    let value = stack::pop(&mut evm.stack)?.to_bytes_be();
+    
+    // GAS
+    let extend_memory = gas::calculate_gas_extend_memory(&evm.memory, [(start_position.clone(), U256::from(value.len()))].to_vec());
+    gas::charge_gas(evm, gas::GAS_VERY_LOW() + extend_memory.cost)?;
+    
+    // OPERATION
+    evm.memory.extend([0].repeat(usize::try_from(extend_memory.expand_by).unwrap()));
+    memory_write(&mut evm.memory, start_position, value.into_boxed_slice());
+    
+    // PROGRAM COUNTER
+    evm.pc += 1;
+    Ok(())
+}
 
 
-// /// 
-// ///     Stores a byte to memory.
-// ///     This also expands the memory, if the memory is
-// ///     insufficient to store the word.
-// /// 
-// ///     Parameters
-// ///     ----------
-// ///     evm :
-// ///         The current EVM frame.
-// /// 
-// ///     
-// pub fn mstore8(evm: Evm) -> Result<(), Error> {
-//     start_position = pop(evm.stack)?;
-//     value = pop(evm.stack)?;
-//     extend_memory = calculate_gas_extend_memory(evm.memory, [(start_position, U256(1)?)])?;
-//     charge_gas(evm, GAS_VERY_LOW + extend_memory.cost)?;
-//     evm.memory += [0] * extend_memory.expand_by;
-//     normalized_bytes_value = Bytes([value & U8_MAX_VALUE])?;
-//     memory_write(evm.memory, start_position, normalized_bytes_value)?;
-//     evm.pc += 1;
-// }
+/// Stores a byte to memory.
+/// This also expands the memory, if the memory is
+/// insufficient to store the word.
+/// 
+/// Parameters
+/// ----------
+/// evm :
+///     The current EVM frame.
+pub fn mstore8(evm: &mut Evm) -> Result<()> {
+    // STACK
+    let start_position = stack::pop(&mut evm.stack)?;
+    let value = stack::pop(&mut evm.stack)?;
+    
+    // GAS
+    let extend_memory = gas::calculate_gas_extend_memory(&evm.memory, [(start_position.clone(), U256::from(1u8))].to_vec());
+    gas::charge_gas(evm, gas::GAS_VERY_LOW() + extend_memory.cost)?;
+    
+    // OPERATION
+    evm.memory.extend([0].repeat(usize::try_from(extend_memory.expand_by).unwrap()));
+    let normalized_bytes_value = (value & U256::from(u8::MAX)).to_bytes_be().into_boxed_slice();
+    memory_write(&mut evm.memory, start_position, normalized_bytes_value);
+    
+    // PROGRAM COUNTER
+    evm.pc += 1;
+    Ok(())
+}
+
+/// Load word from memory.
+/// 
+/// Parameters
+/// ----------
+/// evm :
+///     The current EVM frame.
+pub fn mload(evm: &mut Evm) -> Result<()> {
+    // STACK
+    let start_position = stack::pop(&mut evm.stack)?;
+    
+    // GAS
+    let extend_memory = gas::calculate_gas_extend_memory(&evm.memory, [(start_position.clone(), U256::from(32u8))].to_vec());
+    gas::charge_gas(evm, gas::GAS_VERY_LOW() + extend_memory.cost)?;
+    
+    // OPERATION
+    evm.memory.extend([0].repeat(usize::try_from(extend_memory.expand_by).unwrap()));
+    let value = U256::from_bytes_be(memory_read_bytes(&evm.memory, start_position, U256::from(32u8)));
+    stack::push(&mut evm.stack, value)?;
+    
+    // PROGRAM COUNTER
+    evm.pc += 1;
+    Ok(())
+}
 
 
-// /// 
-// ///     Load word from memory.
-// /// 
-// ///     Parameters
-// ///     ----------
-// ///     evm :
-// ///         The current EVM frame.
-// /// 
-// ///     
-// pub fn mload(evm: Evm) -> Result<(), Error> {
-//     start_position = pop(evm.stack)?;
-//     extend_memory = calculate_gas_extend_memory(evm.memory, [(start_position, U256(32)?)])?;
-//     charge_gas(evm, GAS_VERY_LOW + extend_memory.cost)?;
-//     evm.memory += [0] * extend_memory.expand_by;
-//     value = U256.from_be_bytes(memory_read_bytes(evm.memory, start_position, U256(32)?)?)?;
-//     push(evm.stack, value)?;
-//     evm.pc += 1;
-// }
-
-
-// /// 
-// ///     Push the size of active memory in bytes onto the stack.
-// /// 
-// ///     Parameters
-// ///     ----------
-// ///     evm :
-// ///         The current EVM frame.
-// /// 
-// ///     
-// pub fn msize(evm: Evm) -> Result<(), Error> {
-//     // pass;
-//     charge_gas(evm, GAS_BASE)?;
-//     push(evm.stack, U256(len(evm.memory)?)?)?;
-//     evm.pc += 1;
-// }
-
-
+/// Push the size of active memory in bytes onto the stack.
+/// 
+/// Parameters
+/// ----------
+/// evm :
+///     The current EVM frame.
+pub fn msize(evm: &mut Evm) -> Result<()> {
+    // STACK
+    let _ = {};
+    
+    // GAS
+    gas::charge_gas(evm, gas::GAS_BASE())?;
+    
+    // OPERATION
+    stack::push(&mut evm.stack, U256::from(evm.memory.len()))?;
+    
+    // PROGRAM COUNTER
+    evm.pc += 1;
+    Ok(())
+}
