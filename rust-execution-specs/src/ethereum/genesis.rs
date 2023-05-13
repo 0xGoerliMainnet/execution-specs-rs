@@ -12,12 +12,14 @@
 /// Functionalities and entities to obtain the genesis configurations for
 /// different chains.
 ///
-use std::collections::HashMap;
+use std::{collections::HashMap, todo};
+
+use crate::ethereum_spec_tools::forks::{HardForkBlockChain, HardForkProvider, HardFork};
 
 use super::{
     base_types::{Bytes, Bytes20, Bytes8, Uint, U256, U64},
     exceptions::EthereumException,
-    utils::hexadecimal::{hex_to_bytes, hex_to_bytes20, hex_to_bytes8, hex_to_u256, hex_to_uint},
+    utils::hexadecimal::{hex_to_bytes, hex_to_bytes20, hex_to_bytes8, hex_to_u256, hex_to_uint}, frontier::fork::BlockChain,
 };
 
 type Address = Bytes20;
@@ -127,14 +129,14 @@ pub fn get_genesis_configuration(
 ///     genesis :
 ///         The genesis configuration to use.
 ///
-pub fn add_genesis_block() {}
+pub fn add_genesis_block(hardfork: HardFork, chain: BlockChain, genesis: GenesisConfiguration) -> Result<(), EthereumException> {
+    // for (account, balance) in genesis.initial_balances {
+    //     chain.get_state().create_ether( account, balance);
+    // }
 
-// pub fn add_genesis_block<H : HardFork, C: BlockChain>(hardfork: H, chain: C, genesis: GenesisConfiguration) -> Result<(), Error> {
-//     for (account, balance) in genesis.initial_balances.items()? {
-//         hardfork.state.create_ether(chain.state, account, balance)?;
-//     }
-//     genesis_header = hardfork.eth_types.Header(parent_hash = hardfork.eth_types.Hash32([0] * 32)?, ommers_hash = rlp.rlp_hash(())?, coinbase = Address([0] * 20)?, state_root = hardfork.state.state_root(chain.state)?, transactions_root = hardfork.trie.root(hardfork.trie.Trie(false, ())?)?, receipt_root = hardfork.trie.root(hardfork.trie.Trie(false, ())?)?, bloom = hardfork.eth_types.Bloom([0] * 256)?, difficulty = genesis.difficulty, number = Uint(0)?, gas_limit = genesis.gas_limit, gas_used = Uint(0)?, timestamp = genesis.timestamp, extra_data = genesis.extra_data, mix_digest = hardfork.eth_types.Hash32([0] * 32)?, nonce = genesis.nonce)?;
-//     genesis_block = hardfork.eth_types.Block(header = genesis_header, transactions = (), ommers = ())?;
-//     chain.blocks.append(genesis_block)?;
-//     chain.chain_id = genesis.chain_id;
-// }
+    // genesis_header = hardfork.eth_types.Header(parent_hash = hardfork.eth_types.Hash32([0] * 32)?, ommers_hash = rlp.rlp_hash(())?, coinbase = Address([0] * 20)?, state_root = hardfork.state.state_root(chain.state)?, transactions_root = hardfork.trie.root(hardfork.trie.Trie(false, ())?)?, receipt_root = hardfork.trie.root(hardfork.trie.Trie(false, ())?)?, bloom = hardfork.eth_types.Bloom([0] * 256)?, difficulty = genesis.difficulty, number = Uint(0)?, gas_limit = genesis.gas_limit, gas_used = Uint(0)?, timestamp = genesis.timestamp, extra_data = genesis.extra_data, mix_digest = hardfork.eth_types.Hash32([0] * 32)?, nonce = genesis.nonce)?;
+    // genesis_block = hardfork.eth_types.Block(header = genesis_header, transactions = (), ommers = ())?;
+    // chain.blocks.append(genesis_block)?;
+    // chain.chain_id = genesis.chain_id;
+    todo!()
+}
