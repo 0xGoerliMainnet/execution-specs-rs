@@ -1,5 +1,5 @@
 [package]
-name = "rust-execution-specs"
+name = "execution-specs-rs"
 version = "0.1.0"
 edition = "2021"
 
