@@ -8,7 +8,10 @@ help: ## This help
 .PHONY: init test docs open-docs
 
 init: ## Init and pull git submodules
-	@bash -x init.sh
+	@git submodule update --init --recursive
+
+update:
+	@git submodule update --recursive
 
 test: ## Execute rust-execution-specs test
 	@cd $(RUST_EXECUTION_FORLDER); cargo test
@@ -26,3 +29,7 @@ exec-python:
 	@python -c 'from ethereum.rlp import encode; output = encode(""); print("Output: ", output, "\n")'
 	@echo "ethereum.rlp.encode(ethereum.base_types.Uint(7))'"
 	@python -c 'from ethereum.rlp import encode; from ethereum.base_types import Uint; output = encode(Uint(7)); print("Output:", output, "\n")'
+
+clean:
+	@rm -rf execution-specs
+	@rm -rf tests
