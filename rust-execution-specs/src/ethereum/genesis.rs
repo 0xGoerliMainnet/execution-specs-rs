@@ -1,10 +1,6 @@
 //!
 //! # Genesis Configuration
 //!
-//! .. contents:: Table of Contents
-//!     :backlinks: none
-//!     :local:
-//!
 //! ## Introduction
 //!
 //! Functionalities and entities to obtain the genesis configurations for

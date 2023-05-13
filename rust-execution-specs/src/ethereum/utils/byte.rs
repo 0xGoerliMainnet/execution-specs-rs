@@ -1,13 +1,7 @@
 //!
-//! Utility Functions For Byte Strings
-//! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//! # Utility Functions For Byte Strings
 //!
-//! .. contents:: Table of Contents
-//!     :backlinks: none
-//!     :local:
-//!
-//! Introduction
-//! ------------
+//! ## Introduction
 //!
 //! Byte specific utility functions used in this specification.
 //!

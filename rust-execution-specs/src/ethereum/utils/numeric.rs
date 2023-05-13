@@ -1,13 +1,7 @@
 //! 
-//! Utility Functions For Numeric Operations
-//! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//! # Utility Functions For Numeric Operations
 //! 
-//! .. contents:: Table of Contents
-//!     :backlinks: none
-//!     :local:
-//! 
-//! Introduction
-//! ------------
+//! ## Introduction
 //! 
 //! Numeric operations specific utility functions used in this specification.
 //!

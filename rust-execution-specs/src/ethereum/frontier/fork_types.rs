@@ -1,22 +1,10 @@
 /// 
-/// Ethereum Types
-/// ^^^^^^^^^^^^^^
+/// # Ethereum Types
 /// 
-/// .. contents:: Table of Contents
-///     :backlinks: none
-///     :local:
-/// 
-/// Introduction
-/// ------------
+/// ## Introduction
 /// 
 /// Types re-used throughout the specification, which are specific to Ethereum.
 /// 
-// use ::dataclasses::{dataclass};
-// use ::typing::{Tuple, Union};
-// use super::super::::{rlp};
-// use super::super::base_types::{U256, Bytes, Bytes0, Bytes8, Bytes20, Bytes32, Bytes256, Uint, slotted_freezable};
-// use super::super::crypto::hash::{Hash32, keccak256};
-
 
 use crate::ethereum::{base_types::{Uint, U256, Bytes, Bytes20, Bytes256, Bytes32, Bytes8}, rlp};
 

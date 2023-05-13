@@ -1,9 +1,5 @@
 //! # Recursive Length Prefix (RLP) Encoding
 //!
-//! .. contents:: Table of Contents
-//!     :backlinks: none
-//!     :local:
-//!
 //! ## Introduction
 //!
 //! Defines the serialization and deserialization format used throughout Ethereum.

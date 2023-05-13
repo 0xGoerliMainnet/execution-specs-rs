@@ -1,13 +1,6 @@
+//! # Ethereum Logs Bloom
 //! 
-//! Ethereum Logs Bloom
-//! ^^^^^^^^^^^^^^^^^^^
-//! 
-//! .. contents:: Table of Contents
-//! :backlinks: none
-//! :local:
-//! 
-//! Introduction
-//! ------------
+//! ## Introduction
 //! 
 //! This modules defines functions for calculating bloom filters of logs. For the
 //! general theory of bloom filters see e.g. `Wikipedia
