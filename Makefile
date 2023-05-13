@@ -7,14 +7,13 @@ help: ## This help
 .PHONY: init test docs open-docs
 
 init: ## Init and pull git submodules
-	@git submodule init
-	@git submodule update --recursive --remote
+	@bash -x init.sh
 
 test: ## Execute rust-execution-specs test
-	cd $(RUST_EXECUTION_FORLDER); cargo test
+	@cd $(RUST_EXECUTION_FORLDER); cargo test
 
 docs: ## Generate rust-execution-specs docs
-	cd $(RUST_EXECUTION_FORLDER); cargo doc
+	@cd $(RUST_EXECUTION_FORLDER); cargo doc
 
-open-docs: docs ## Open docs
-	x-www-browser target/doc/rust_execution_specs/index.html
+docs-open: docs ## Open docs
+	@x-www-browser target/doc/rust_execution_specs/index.html
