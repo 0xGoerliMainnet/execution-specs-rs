@@ -28,9 +28,9 @@ use std::collections::HashMap;
 
 use hex_literal::hex;
 
-use crate::ethereum::{rlp::{EncodeRlp, encode_sequence}, base_types::{Bytes, Uint, U256}, exceptions::EthereumException};
+use crate::ethereum::{rlp::{EncodeRlp, encode_sequence}, base_types::{Bytes, U256, Bytes32}, exceptions::EthereumException};
 
-use super::fork_types::{keccak256, Account, Transaction, Receipt, Address};
+use super::fork_types::{keccak256, Account, Address};
 
 pub type Root = [u8; 32];
 
@@ -38,17 +38,36 @@ pub trait Key : Eq + std::hash::Hash + AsRef<[u8]> {}
 
 pub const EMPTY_TRIE_ROOT : Root = hex!("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421");
 
-pub trait Node: PartialEq + std::fmt::Debug {
-    fn encode(&self) -> Bytes;
+pub trait Node: PartialEq + std::fmt::Debug + Clone {
+    fn encode<F : Fn(&Address) -> Root>(&self, f: F) -> Bytes;
 }
 
 impl Node for String {
-    fn encode(&self) -> Bytes {
+    fn encode<F : Fn(&Address) -> Root>(&self, _f: F) -> Bytes {
         self.as_bytes().into()
     }
 }
 
+impl Node for Option<Account> {
+    fn encode<F : Fn(&Address) -> Root>(&self, _f: F) -> Bytes {
+        Bytes::default()
+    }
+}
+
+impl Node for U256 {
+    fn encode<F : Fn(&Address) -> Root>(&self, _f: F) -> Bytes {
+        Bytes::default()
+    }
+}
+
 impl Key for String {
+}
+
+impl Key for Address {
+}
+
+impl Key for Bytes32 {
+    
 }
 
 // pub enum Node {
@@ -162,8 +181,8 @@ pub fn encode_internal_node<V : EncodeRlp>(node: &InternalNode<V>) -> Bytes {
 /// 
 ///     Currently mostly an unimplemented stub.
 ///     
-pub fn encode_node<N : Node>(node: &N) -> Bytes {
-    node.encode()
+pub fn encode_node<N : Node, F : Fn(&Address) -> Root>(node: &N, f: F) -> Bytes {
+    node.encode(f)
 }
 
 /// 
@@ -259,11 +278,11 @@ where
 ///     node : `V`
 ///         Node at `key` in the trie.
 ///     
-pub fn trie_get<'t, K, V>(trie: &'t Trie<K, V>, key: &K) -> &'t V
+pub fn trie_get<'t, K, V>(trie: &'t Trie<K, V>, key: &K) -> V
 where
     K: Key, V: Node,
 {
-    trie.data.get(key).unwrap_or_else(|| &trie.default)
+    trie.data.get(key).cloned().unwrap_or_else(|| trie.default.clone())
 }
 
 
@@ -370,14 +389,16 @@ pub fn nibble_list_to_compact(x: &[u8], is_leaf: bool) -> Bytes {
 ///     out : `Mapping[ethereum.base_types.Bytes, Node]`
 ///         Object with keys mapped to nibble-byte form.
 ///     
-pub fn _prepare_trie<K, V>(trie: &Trie<K, V>) -> Result<Vec<(Bytes, Bytes)>, EthereumException>
+pub fn _prepare_trie<K, V, F>(trie: &Trie<K, V>, f: F) -> Result<Vec<(Bytes, Bytes)>, EthereumException>
 where
     K: Key, V: Node,
+    F : Fn(&Address) -> Root + Clone,
 {
     let mut res = vec![];
-    for (preimage, value) in &trie.data {
+    for (_preimage, value) in &trie.data {
+        let f = f.clone();
         if trie.secured {
-            let encoded_value = encode_node(value);
+            let encoded_value = encode_node(value, f);
             assert!(!encoded_value.is_empty());
             // res.push((bytes_to_nibble_list(&keccak256(preimage.as_ref())), encoded_value));
         } else {
@@ -405,11 +426,11 @@ where
 ///     root : `.fork_types.Root`
 ///         MPT root of the underlying key-value pairs.
 ///     
-pub fn root<K, V>(trie: &Trie<K, V>) -> Result<Root, EthereumException>
+pub fn root<K, V, F : Fn(&Address) -> Root + Clone>(trie: &Trie<K, V>, f: F) -> Root
 where
     K: Key, V: Node,
 {
-    let obj = _prepare_trie(&trie)?;
+    let _obj = _prepare_trie(&trie, f).unwrap();
     todo!();
     // root_node = encode_internal_node(patricialize(obj, Uint(0)?)?)?;
     // if len(rlp.encode(root_node)?)? < 32 {

@@ -66,8 +66,9 @@ pub struct Account {
     pub code: Bytes,
 }
 
-
-// EMPTY_ACCOUNT = Account(nonce = Uint(0)?, balance = U256(0)?, code = bytearray()?)?;
+pub fn empty_account() -> Account {
+    Account::default()
+}
 
 /// 
 ///     Encode `Account` dataclass.
