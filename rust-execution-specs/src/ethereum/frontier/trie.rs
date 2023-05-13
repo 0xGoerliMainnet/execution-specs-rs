@@ -169,6 +169,7 @@ pub fn encode_node(_node: Node, _storage_root: Option<Bytes>) -> Bytes {
 /// 
 ///     The Merkle Trie.
 ///     
+#[derive(Clone)]
 pub struct Trie<K, V>
 where
     K: Eq + std::hash::Hash, V: Default + PartialEq
@@ -473,5 +474,3 @@ pub fn nibble_list_to_compact(x: &[u8], is_leaf: bool) -> Bytes {
 //     }
 //     return Ok(BranchNode(/* ListComp unsupported */, value)?);
 // }
-
-
