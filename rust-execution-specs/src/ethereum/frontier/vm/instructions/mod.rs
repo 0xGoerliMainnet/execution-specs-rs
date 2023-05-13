@@ -11,7 +11,7 @@
 //! Machine readable representations of EVM instructions, and a mapping to their
 //! implementations.
 
-use super::Evm;
+// use super::Evm;
 
 pub mod arithmetic;
 
