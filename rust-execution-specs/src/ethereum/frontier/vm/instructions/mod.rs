@@ -15,6 +15,7 @@
 pub mod arithmetic;
 pub mod bitwise;
 pub mod block;
+pub mod comparison;
 
 /// Enum for EVM Opcodes
 #[repr(usize)]
