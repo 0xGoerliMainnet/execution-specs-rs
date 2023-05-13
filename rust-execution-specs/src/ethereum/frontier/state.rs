@@ -25,27 +25,27 @@
 // // use super::trie::{EMPTY_TRIE_ROOT, Trie, copy_trie, root, trie_get, trie_set};
 
 use super::{
-    fork_types::{Account, Address, Root, EMPTY_ACCOUNT},
+    fork_types::{Account, Address, Root, empty_account},
     trie::{self, Trie},
 };
-use crate::ethereum::base_types::{Bytes, Uint, U256};
+use crate::ethereum::base_types::{Bytes, Uint, U256, Bytes32};
 use num_traits::CheckedSub;
 use std::collections::HashMap;
 
 /// Contains all information that is preserved between transactions.
 pub struct State {
     main_trie: Trie<Address, Option<Account>>,
-    storage_tries: HashMap<Address, Trie<Bytes, U256>>,
+    storage_tries: HashMap<Address, Trie<Bytes32, U256>>,
     snapshots: Vec<(
         Trie<Address, Option<Account>>,
-        HashMap<Address, Trie<Bytes, U256>>,
+        HashMap<Address, Trie<Bytes32, U256>>,
     )>,
 }
 
 impl Default for State {
     fn default() -> Self {
         Self {
-            main_trie: Trie::new(true),
+            main_trie: Trie::new(true, None),
             storage_tries: HashMap::new(),
             snapshots: Vec::new(),
         }
@@ -113,8 +113,8 @@ pub fn rollback_transaction(state: &mut State) {
 /// -------
 /// account : `Account`
 ///     Account at address.
-pub fn get_account<'a>(state: &'a State, address: &Address) -> &'a Account {
-    get_account_optional(state, address).unwrap_or(&EMPTY_ACCOUNT)
+pub fn get_account(state: &State, address: &Address) -> Account {
+    get_account_optional(state, address).unwrap_or(empty_account())
 }
 
 /// Get the `Account` object at an address. Returns `None` (rather than
@@ -131,7 +131,7 @@ pub fn get_account<'a>(state: &'a State, address: &Address) -> &'a Account {
 /// -------
 /// account : `Account`
 ///     Account at address.
-pub fn get_account_optional<'a>(state: &'a State, address: &Address) -> Option<&'a Account> {
+pub fn get_account_optional(state: &State, address: &Address) -> Option<Account> {
     trie::trie_get(&state.main_trie, address)
 }
 
@@ -198,11 +198,11 @@ pub fn destroy_storage(state: &mut State, address: &Address) {
 /// value : `U256`
 ///     Value at the key.
 ///
-pub fn get_storage(state: &State, address: &Address, key: &[u8]) -> U256 {
+pub fn get_storage(state: &State, address: &Address, key: &Bytes32) -> U256 {
     let Some(trie) = state.storage_tries.get(address) else {
         return U256::from(0u8);
     };
-    trie::trie_get(&state.storage_tries, key).expect("No storage found for the given key")
+    trie::trie_get(&trie, key)
 }
 
 /// Set a value at a storage key on an account. Setting to `U256(0)` deletes
@@ -219,14 +219,14 @@ pub fn get_storage(state: &State, address: &Address, key: &[u8]) -> U256 {
 /// value : `U256`
 ///     Value to set at the key.
 ///
-pub fn set_storage(state: &mut State, address: Address, key: Bytes, value: U256) {
-    assert!(trie::trie_get(&state.main_trie).is_some());
+pub fn set_storage(state: &mut State, address: Address, key: &Bytes32, value: U256) {
+    // assert!(trie::trie_get(&state.main_trie).is_some());
 
     let trie = state
         .storage_tries
         .entry(address)
-        .or_insert_with(|| Trie::new(true));
-    trie::trie_set(trie, key, value);
+        .or_insert_with(|| Trie::new(true, Uint::default()));
+    trie::trie_set(trie, key.clone(), value);
     // todo
     // if trie._data == {}:
     //         del state._storage_tries[address]
@@ -246,13 +246,16 @@ pub fn set_storage(state: &mut State, address: Address, key: Bytes, value: U256)
 /// root : `Root`
 ///     Storage root of the account.
 ///
-pub fn storage_root<'a>(state: &'a State, address: &Address) -> &'a Root {
+pub fn storage_root(state: &State, address: &Address) -> Root {
     assert!(state.snapshots.is_empty());
-    state
+    let z = state
         .storage_tries
         .get(address)
-        .map(|trie| trie::root(trie, None))
-        .unwrap_or(&trie::EMPTY_TRIE_ROOT)
+        .map(|trie| trie::root(trie, |_| Root::default()))
+        .unwrap()
+        // .unwrap_or(trie::EMPTY_TRIE_ROOT.clone());
+    ;
+    z
 }
 
 /// Calculate the state root.
@@ -267,11 +270,11 @@ pub fn storage_root<'a>(state: &'a State, address: &Address) -> &'a Root {
 /// root : `Root`
 ///     The state root.
 ///
-pub fn state_root(state: &State) -> &Root {
+pub fn state_root(state: &State) -> Root {
     assert!(state.snapshots.is_empty());
 
-    let get_state_root = |address: &Address| -> &Root { storage_root(state, address) };
-    trie::root(&state.main_trie, Some(get_state_root))
+    let get_state_root = |address: &Address| -> Root { storage_root(state, address) };
+    trie::root(&state.main_trie, get_state_root)
 }
 
 /// Checks if an account exists in the state trie
@@ -329,12 +332,12 @@ pub fn move_ether(
     recipient_address: Address,
     amount: U256,
 ) {
+    let sub_amount = amount.clone();
+
     let reduce_sender_balance = |sender: &mut Account| {
-        sender.balance = sender
-            .balance
-            .checked_sub(&amount)
-            .expect("Sender does not have enough ether");
+        sender.balance = sender.balance.checked_sub(&sub_amount).expect("Sender does not have enough ether");
     };
+
     let increase_recipient_balance = |recipient: &mut Account| {
         recipient.balance += amount;
     };
@@ -376,7 +379,7 @@ pub fn set_account_balance(state: &mut State, address: Address, amount: U256) {
 ///
 pub fn touch_account(state: &mut State, address: Address) {
     if !account_exists(state, &address) {
-        set_account(state, address, EMPTY_ACCOUNT);
+        set_account(state, address, Some(empty_account()));
     }
 }
 

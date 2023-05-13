@@ -14,3 +14,5 @@ Cargo.lock
 *.pdb
 
 .idea/
+
+rust-execution-specs/tests/fixtures

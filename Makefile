@@ -1,5 +1,6 @@
 
-RUST_EXECUTION_FORLDER = rust-execution-specs
+PY_EXECUTION_FOLDER=execution-specs/src
+RUST_EXECUTION_FORLDER=rust-execution-specs
 
 help: ## This help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -7,14 +8,21 @@ help: ## This help
 .PHONY: init test docs open-docs
 
 init: ## Init and pull git submodules
-	@git submodule init
-	@git submodule update --recursive --remote
+	@bash -x init.sh
 
 test: ## Execute rust-execution-specs test
-	cd $(RUST_EXECUTION_FORLDER); cargo test
+	@cd $(RUST_EXECUTION_FORLDER); cargo test
 
 docs: ## Generate rust-execution-specs docs
-	cd $(RUST_EXECUTION_FORLDER); cargo doc
+	@cd $(RUST_EXECUTION_FORLDER); cargo doc
 
-open-docs: docs ## Open docs
-	x-www-browser target/doc/rust_execution_specs/index.html
+docs-open: docs ## Open docs
+	@x-www-browser target/doc/rust_execution_specs/index.html
+
+
+exec-python:
+	@cd $(PY_EXECUTION_FOLDER)
+	@echo 'ethereum.rlp.encode("")'
+	@python -c 'from ethereum.rlp import encode; output = encode(""); print("Output: ", output, "\n")'
+	@echo "ethereum.rlp.encode(ethereum.base_types.Uint(7))'"
+	@python -c 'from ethereum.rlp import encode; from ethereum.base_types import Uint; output = encode(Uint(7)); print("Output:", output, "\n")'
