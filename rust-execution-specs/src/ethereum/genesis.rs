@@ -14,7 +14,7 @@
 ///
 use std::{collections::HashMap, todo};
 
-use crate::ethereum_spec_tools::forks::{HardForkBlockChain, HardForkProvider, HardFork};
+use crate::ethereum_spec_tools::forks::HardFork;
 
 use super::{
     base_types::{Bytes, Bytes20, Bytes8, Uint, U256, U64},

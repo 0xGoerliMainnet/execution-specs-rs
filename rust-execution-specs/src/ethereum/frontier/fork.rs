@@ -27,14 +27,15 @@
 // use super::trie::{Trie, root, trie_set};
 // use super::utils::message::{prepare_message};
 // use super::vm::interpreter::{process_message_call};
-// BLOCK_REWARD = U256(5 * (10).pow(18))?;
-// GAS_LIMIT_ADJUSTMENT_FACTOR = 1024;
-// GAS_LIMIT_MINIMUM = 5000;
-// MINIMUM_DIFFICULTY = Uint(131072)?;
-// MAX_OMMER_DEPTH = 6;
 
-use crate::ethereum::base_types::U64;
+use crate::ethereum::base_types::{U64};
 use super::{fork_types::Block, state::State};
+
+// static  BLOCK_REWARD: U256 = U256::from(10u64).pow(18u64).mul(U256::from(5u64));
+const GAS_LIMIT_ADJUSTMENT_FACTOR: u64 = 1024;
+const GAS_LIMIT_MINIMUM:u64 = 5000;
+const MINIMUM_DIFFICULTY:u64 = 131072;
+const MAX_OMMER_DEPTH: u8 = 6;
 
 ///
 ///     History and current state of the block chain.
