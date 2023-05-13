@@ -17,6 +17,7 @@ pub mod bitwise;
 pub mod block;
 pub mod comparison;
 pub mod control_flow;
+pub mod environment;
 
 /// Enum for EVM Opcodes
 #[repr(usize)]
