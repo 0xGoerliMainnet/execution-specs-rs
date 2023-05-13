@@ -1,3 +1,5 @@
+use std::usize;
+
 ///
 /// .. _rlp:
 ///
@@ -126,6 +128,16 @@ impl EncodeRlp for bool {
 //     return Ok(encode_sequence(raw_data)?);
 
 impl<T: EncodeRlp> EncodeRlp for [T] {
+    fn encode(&self) -> Bytes {
+        let mut joined_encodings = vec![];
+        for item in self {
+            joined_encodings.extend(item.encode().iter().copied());
+        }
+        encode_sequence(&joined_encodings)
+    }
+}
+
+impl<const N: usize, T: EncodeRlp> EncodeRlp for [T; N] {
     fn encode(&self) -> Bytes {
         let mut joined_encodings = vec![];
         for item in self {
