@@ -12,10 +12,13 @@
 /// Functionalities and entities to obtain the genesis configurations for
 /// different chains.
 ///
-
 use std::collections::HashMap;
 
-use super::{base_types::{Bytes20, U64, Uint, U256, Bytes8, Bytes}, exceptions::EthereumException, utils::hexadecimal::{hex_to_bytes8, hex_to_u256, hex_to_bytes, hex_to_uint}};
+use super::{
+    base_types::{Bytes, Bytes20, Bytes8, Uint, U256, U64},
+    exceptions::EthereumException,
+    utils::hexadecimal::{hex_to_bytes, hex_to_bytes20, hex_to_bytes8, hex_to_u256, hex_to_uint},
+};
 
 type Address = Bytes20;
 
@@ -52,32 +55,33 @@ pub struct GenesisConfiguration {
 ///     configuration : `GenesisConfiguration`
 ///         The genesis configuration obtained from the json genesis file.
 ///
-pub fn get_genesis_configuration(genesis_file: &str) -> Result<GenesisConfiguration, EthereumException> {
-    let path = format!("../execution-specs/src/ethereum/assets/{genesis_file}");
-    let file = std::fs::read_to_string(&path)
-        .map_err(|_| EthereumException::FileNotFound(path))?;
+pub fn get_genesis_configuration(
+    genesis_file: &str,
+) -> Result<GenesisConfiguration, EthereumException> {
+    let path = format!("./assets/{genesis_file}");
+    let file = std::fs::read_to_string(&path).map_err(|_| EthereumException::FileNotFound(path))?;
 
-    let value : serde_json::Value = serde_json::from_str(&file)
+    let value: serde_json::Value = serde_json::from_str(&file)
         .map_err(|e| EthereumException::JsonDecodeError(e.to_string()))?;
-
 
     let mut res = GenesisConfiguration::default();
 
+    res.chain_id = U64::from(value["config"]["chainId"].as_u64().unwrap());
     res.nonce = hex_to_bytes8(value["nonce"].as_str().unwrap())?;
     res.timestamp = hex_to_u256(value["timestamp"].as_str().unwrap())?;
     res.extra_data = hex_to_bytes(value["extraData"].as_str().unwrap())?;
     res.gas_limit = hex_to_uint(value["gasLimit"].as_str().unwrap())?;
     res.difficulty = hex_to_uint(value["difficulty"].as_str().unwrap())?;
 
-    // TODO:
-
-    // for v in value["alloc"].as_array().unwrap() {
-    //     let v = v
-    // }
+    for alloc in value["alloc"].as_object().unwrap() {
+        let (address, account) = alloc;
+        let address = hex_to_bytes20(address.as_str())?;
+        let account = hex_to_u256(account["balance"].as_str().unwrap())?;
+        res.initial_balances.insert(address, account);
+    }
 
     Ok(res)
 }
-
 
 ///
 ///     Adds the genesis block to an empty blockchain.
@@ -123,9 +127,7 @@ pub fn get_genesis_configuration(genesis_file: &str) -> Result<GenesisConfigurat
 ///     genesis :
 ///         The genesis configuration to use.
 ///
-pub fn add_genesis_block() {
-
-}
+pub fn add_genesis_block() {}
 
 // pub fn add_genesis_block<H : HardFork, C: BlockChain>(hardfork: H, chain: C, genesis: GenesisConfiguration) -> Result<(), Error> {
 //     for (account, balance) in genesis.initial_balances.items()? {
