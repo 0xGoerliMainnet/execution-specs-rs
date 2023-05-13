@@ -178,6 +178,4 @@ pub enum Ops {
     SELFDESTRUCT = 0xFF,
 }
 
-pub const OP_IMPLEMENTATIONS: [fn(&mut Evm); 256] = [
-    todo!(),
-];
+// pub const OP_IMPLEMENTATIONS: [fn(&mut Evm); 256] = todo!();

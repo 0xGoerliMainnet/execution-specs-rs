@@ -129,6 +129,7 @@ impl Block {
 /// 
 ///     Data record produced during the execution of a transaction.
 ///     
+#[derive(Clone)]
 pub struct Log {
     pub address: Address,
     pub topics: Vec<Hash32>,

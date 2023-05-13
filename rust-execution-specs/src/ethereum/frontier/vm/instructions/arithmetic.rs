@@ -1,5 +1,5 @@
 use super::super::{
-    exceptions::{EvmError, Result},
+    exceptions::{Result},
     gas, stack, Evm,
 };
 use crate::ethereum::base_types::U256;
@@ -196,7 +196,7 @@ pub fn smod(evm: &mut Evm) -> Result<()> {
     let remainder = if y == BigInt::from(0u8) {
         BigInt::from(0u8)
     } else {
-        get_sign(x) * (x.abs() % y.abs())
+        get_sign(x.clone()) * (x.abs() % y.abs())
     };
 
     stack::push(&mut evm.stack, U256::new(remainder.to_u32_digits().1))?;
@@ -285,7 +285,7 @@ pub fn exp(evm: &mut Evm) -> Result<()> {
     let exponent_bytes = (exponent_bits + 7) / 8;
     gas::charge_gas(
         evm,
-        gas::GAS_EXPONENTIATION() + gas::GAS_EXPONENTIATION_PER_BYTE() * exponent_bytes.into(),
+        gas::GAS_EXPONENTIATION() + gas::GAS_EXPONENTIATION_PER_BYTE() * U256::from(exponent_bytes),
     )?;
 
     // OPERATION
@@ -315,7 +315,7 @@ pub fn signextend(evm: &mut Evm) -> Result<()> {
     gas::charge_gas(evm, gas::GAS_LOW())?;
 
     // OPERATION
-    if byte_num > U256::from(31) {
+    let result = if byte_num > U256::from(31u8) {
         // Can't extend any further
         value
     } else {
@@ -323,18 +323,18 @@ pub fn signextend(evm: &mut Evm) -> Result<()> {
         let value_bytes = value.to_bytes_be();
         // Now among the obtained value bytes, consider only
         // N `least significant bytes`, where N is `byte_num + 1`.
-        let value_bytes = &value_bytes[(31 - usize::try_from(byte_num).unwrap())..];
+        let value_bytes = &value_bytes[(31 - usize::try_from(byte_num.clone()).unwrap())..];
         let sign_bit = value_bytes[0] >> 7;
 
         if sign_bit == 0 {
             U256::from_bytes_be(value_bytes)
         } else {
-            let num_bytes_prepend = 32 - (byte_num + 1);
-            let mut bytes = [0xff].repeat(num_bytes_prepend);
+            let num_bytes_prepend = U256::from(32u8) - (byte_num + U256::from(1u8));
+            let mut bytes = [0xff].repeat(usize::try_from(num_bytes_prepend).unwrap());
             bytes.extend(value_bytes);
             U256::from_bytes_be(&bytes)
         }
-    }
+    };
 
     stack::push(&mut evm.stack, result)?;
 

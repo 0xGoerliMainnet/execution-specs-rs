@@ -24,7 +24,7 @@ macro_rules! gas {
     ($($name:ident = $num:literal;)*) => {$(
         #[allow(non_snake_case)]
         pub fn $name() -> Uint {
-            let num: u8 = $num;
+            let num: u64 = $num;
             Uint::from(num)
         }
     )*};
