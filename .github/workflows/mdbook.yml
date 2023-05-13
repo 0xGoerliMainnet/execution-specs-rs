@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  gendocs:
+  build:
     name: Generate Docs
     runs-on: ubuntu-latest
     env:
