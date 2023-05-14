@@ -1,4 +1,4 @@
-use rust_execution_specs::ethereum::{
+use execution_specs_rs::ethereum::{
     base_types::{Uint, U256},
     rlp::{encode, encode_bytes, encode_iter, encode_sequence},
 };

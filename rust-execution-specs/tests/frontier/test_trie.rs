@@ -1,5 +1,5 @@
 
-use rust_execution_specs::ethereum::{exceptions::EthereumException, frontier::trie::{Trie, trie_set}, base_types::Bytes, utils::hexadecimal::{has_hex_prefix, hex_to_bytes, remove_hex_prefix}};
+use execution_specs_rs::ethereum::{exceptions::EthereumException, frontier::trie::{Trie, trie_set}, base_types::Bytes, utils::hexadecimal::{has_hex_prefix, hex_to_bytes, remove_hex_prefix}};
 
 pub fn to_bytes(data: &serde_json::Value) -> Result<Bytes, EthereumException> {
     if data.is_null() {

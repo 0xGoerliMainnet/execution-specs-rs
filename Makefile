@@ -20,7 +20,7 @@ docs: ## Generate rust-execution-specs docs
 	@cd $(RUST_EXECUTION_FORLDER); cargo doc
 
 docs-open: docs ## Open docs
-	@x-www-browser target/doc/rust_execution_specs/index.html
+	@x-www-browser target/doc/execution_specs_rs/index.html
 
 
 exec-python:

@@ -3,11 +3,11 @@ use std::{dbg, assert_eq};
 use hex_literal::hex;
 use num_bigint::BigUint;
 use num_traits::cast::{FromPrimitive, self};
-use rust_execution_specs::ethereum::base_types::{U256, Bytes};
-use rust_execution_specs::ethereum::exceptions::EthereumException;
-use rust_execution_specs::ethereum::genesis::{get_genesis_configuration, GenesisConfiguration};
-use rust_execution_specs::ethereum::rlp;
-use rust_execution_specs::ethereum::utils::hexadecimal::hex_to_bytes;
+use execution_specs_rs::ethereum::base_types::{U256, Bytes};
+use execution_specs_rs::ethereum::exceptions::EthereumException;
+use execution_specs_rs::ethereum::genesis::{get_genesis_configuration, GenesisConfiguration};
+use execution_specs_rs::ethereum::rlp;
+use execution_specs_rs::ethereum::utils::hexadecimal::hex_to_bytes;
 
 fn mainnet_genesis_configuration() -> GenesisConfiguration {
     get_genesis_configuration("mainnet.json").unwrap()
