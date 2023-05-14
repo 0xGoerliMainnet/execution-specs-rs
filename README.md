@@ -7,7 +7,7 @@ The purpose of execution-specs is to further understand how transactions work on
 There are over 90k tests written in Python that take over 30mins to run. We have re-implemented this in Rust with documentation for the purpose of learning and educating developers on how Ethereum works. The docs are generated with cargo docs and the output is the docs.rs format, which is accessible to Rust developers.
 
 
-## get started
+## Get started
 
 Rust translation of frontier ethereum execution specs.
 
@@ -23,6 +23,16 @@ This will create the rust-execution-specs directory.
 
 We will remove this from .gitignore in Lisbon.
 
+## Usage
+
+- Prepare the repository with needed dependencies
+```
+make init
+```
+- Execute tests
+```
+make test
+```
 
 ## Battle plan for eth-Lisbon
 
