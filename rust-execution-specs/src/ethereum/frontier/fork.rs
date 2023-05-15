@@ -187,55 +187,56 @@ pub fn validate_header(header: &Header, parent_header: Header) -> Result<(), Eth
     Ok(())
 }
 
-// ///
-// ///     Generate rlp hash of the header which is to be used for Proof-of-Work
-// ///     verification.
-// ///
-// ///     In other words, the PoW artefacts `mix_digest` and `nonce` are ignored
-// ///     while calculating this hash.
-// ///
-// ///     A particular PoW is valid for a single hash, that hash is computed by
-// ///     this function. The `nonce` and `mix_digest` are omitted from this hash
-// ///     because they are being changed by miners in their search for a sufficient
-// ///     proof-of-work.
-// ///
-// ///     Parameters
-// ///     ----------
-// ///     header :
-// ///         The header object for which the hash is to be generated.
-// ///
-// ///     Returns
-// ///     -------
-// ///     hash : `Hash32`
-// ///         The PoW valid rlp hash of the passed in header.
-// ///
-// pub fn generate_header_hash_for_pow(header: Header) -> Result<Hash32, Error> {
-//     header_data_without_pow_artefacts = [header.parent_hash, header.ommers_hash, header.coinbase, header.state_root, header.transactions_root, header.receipt_root, header.bloom, header.difficulty, header.number, header.gas_limit, header.gas_used, header.timestamp, header.extra_data];
-//     return Ok(rlp.rlp_hash(header_data_without_pow_artefacts)?);
-// }
-
 ///
-///     Validates the Proof of Work constraints.
+///     Generate rlp hash of the header which is to be used for Proof-of-Work
+///     verification.
 ///
-///     In order to verify that a miner's proof-of-work is valid for a block, a
-///     ``mix-digest`` and ``result`` are calculated using the ``hashimoto_light``
-///     hash function. The mix digest is a hash of the header and the nonce that
-///     is passed through and it confirms whether or not proof-of-work was done
-///     on the correct block. The result is the actual hash value of the block.
+///     In other words, the PoW artefacts `mix_digest` and `nonce` are ignored
+///     while calculating this hash.
+///
+///     A particular PoW is valid for a single hash, that hash is computed by
+///     this function. The `nonce` and `mix_digest` are omitted from this hash
+///     because they are being changed by miners in their search for a sufficient
+///     proof-of-work.
 ///
 ///     Parameters
 ///     ----------
 ///     header :
-///         Header of interest.
+///         The header object for which the hash is to be generated.
 ///
-pub fn validate_proof_of_work(header: &Header) -> Result<(), EthereumException> {
-    // header_hash = generate_header_hash_for_pow(header)?;
-    // cache = generate_cache(header.number)?;
-    // (mix_digest, result) = hashimoto_light(header_hash, header.nonce, cache, dataset_size(header.number)?)?;
-    // ensure(mix_digest == header.mix_digest, InvalidBlock)?;
-    // ensure(Uint.from_be_bytes(result)? <= (U256_CEIL_VALUE).floordiv(header.difficulty), InvalidBlock)?;
+///     Returns
+///     -------
+///     hash : `Hash32`
+///         The PoW valid rlp hash of the passed in header.
+///
+pub fn generate_header_hash_for_pow(header: &Header) -> Result<Hash32, EthereumException> {
+    // header_data_without_pow_artefacts = [header.parent_hash, header.ommers_hash, header.coinbase, header.state_root, header.transactions_root, header.receipt_root, header.bloom, header.difficulty, header.number, header.gas_limit, header.gas_used, header.timestamp, header.extra_data];
+    // return Ok(rlp.rlp_hash(header_data_without_pow_artefacts)?);
     todo!()
 }
+
+// ///
+// ///     Validates the Proof of Work constraints.
+// ///
+// ///     In order to verify that a miner's proof-of-work is valid for a block, a
+// ///     ``mix-digest`` and ``result`` are calculated using the ``hashimoto_light``
+// ///     hash function. The mix digest is a hash of the header and the nonce that
+// ///     is passed through and it confirms whether or not proof-of-work was done
+// ///     on the correct block. The result is the actual hash value of the block.
+// ///
+// ///     Parameters
+// ///     ----------
+// ///     header :
+// ///         Header of interest.
+// ///
+// pub fn validate_proof_of_work(header: &Header) -> Result<(), EthereumException> {
+//     let header_hash = generate_header_hash_for_pow(header)?;
+//     let cache = generate_cache(header.number)?;
+//     (mix_digest, result) = hashimoto_light(header_hash, header.nonce, cache, dataset_size(header.number)?)?;
+//     ensure(mix_digest == header.mix_digest, InvalidBlock)?;
+//     ensure(Uint.from_be_bytes(result)? <= (U256_CEIL_VALUE).floordiv(header.difficulty), InvalidBlock)?;
+//     todo!()
+// }
 
 // ///
 // ///     Check if the transaction is includable in the block.

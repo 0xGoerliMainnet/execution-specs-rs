@@ -21,6 +21,7 @@ pub mod base_types;
 pub mod exceptions;
 pub mod rlp;
 pub mod genesis;
+pub mod ethash;
 
 // Helpers
 pub mod utils;

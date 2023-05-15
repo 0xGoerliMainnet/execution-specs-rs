@@ -9,6 +9,7 @@
 use crate::ethereum::{base_types::{Uint, U256, Bytes, Bytes20, Bytes256, Bytes32, Bytes8}, rlp::{self, EncodeRlp}};
 
 pub type Hash32 = [u8; 32];
+pub type Hash64 = [u8; 64];
 
 pub type Address = Bytes20;
 pub type Root = Hash32;
@@ -23,6 +24,16 @@ pub fn keccak256(data: &[u8]) -> Hash32 {
 
     let mut buf = [0u8; 32];
     let mut hasher = Keccak::v256();
+    hasher.update(data.as_ref());
+    hasher.finalize(&mut buf);
+    buf
+}
+
+pub fn keccak512(data: &[u8]) -> Hash64 {
+    use tiny_keccak::{Hasher, Keccak};
+
+    let mut buf = [0u8; 64];
+    let mut hasher = Keccak::v512();
     hasher.update(data.as_ref());
     hasher.finalize(&mut buf);
     buf
