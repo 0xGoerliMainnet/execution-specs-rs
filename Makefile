@@ -29,10 +29,10 @@ exec-python:
 	echo "ethereum.rlp.encode(ethereum.base_types.Uint(7))'"
 	cd $(PY_EXECUTION_FOLDER); python -c 'from ethereum.rlp import encode; from ethereum.base_types import Uint; output = encode(Uint(7)); print("Output:", output, "\n")'
 
-quick-test:
-	cp quick_test.py $(PY_EXECUTION_FOLDER)
-	cd $(PY_EXECUTION_FOLDER); python quick_test.py
-	cd rust-execution-specs; cargo test frontier::test_trie::quick_test
+# quick-test:
+# 	cp quick_test.py $(PY_EXECUTION_FOLDER)
+# 	cd $(PY_EXECUTION_FOLDER); python quick_test.py
+# 	cd rust-execution-specs; cargo test frontier::test_trie::quick_test
 
 clean:
 	@rm -rf execution-specs

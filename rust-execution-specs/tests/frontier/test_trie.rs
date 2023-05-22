@@ -86,17 +86,6 @@ pub fn test_trie() -> Result<(), EthereumException> {
 }
 
 #[test]
-fn quick_test() {
-    let mut t = Trie::<String, String>::new(false, "".into());
-    trie_set(&mut t, "abc".to_string(),"abc".to_string());
-    trie_set(&mut t, "abcd".to_string(),"abcd".to_string());
-    // trie_set(&mut t, "hello".to_string(),"abcdefghijklmnopqrstuvwxyz".to_string());
-    // trie_set(&mut t, "".to_string(),"abcdefghijklmnopqrstuvwxyz".to_string());
-    let root = root(&t, dummy_root);
-    println!("root={:?}", hex(&root));
-}
-
-#[test]
 pub fn test_trie_any_order() -> Result<(), EthereumException> {
     let tests = load_tests("trieanyorder.json")?;
     for (name, test) in tests.as_object().unwrap() {

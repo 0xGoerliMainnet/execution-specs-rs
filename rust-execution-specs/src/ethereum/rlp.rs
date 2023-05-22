@@ -8,7 +8,7 @@
 use super::{base_types::{strip_leading_zeros, Bytes, Uint, U32, U64}, frontier::fork_types::{keccak256, Hash32}};
 
 /// Trait for converting objects to RLP-encoded byte arrays.
-pub trait EncodeRlp : std::fmt::Debug {
+pub trait RLP : std::fmt::Debug {
     /// Encode an object into some Bytes.
     fn encode(&self) -> Bytes;
 }
@@ -26,11 +26,11 @@ pub trait EncodeRlp : std::fmt::Debug {
 ///     encoded : `ethereum.base_types.Bytes`
 ///         The RLP encoded bytes representing `raw_data`.
 ///
-pub fn encode<R: ?Sized + EncodeRlp>(raw_data: &R) -> Bytes {
+pub fn encode<R: ?Sized + RLP>(raw_data: &R) -> Bytes {
     raw_data.encode()
 }
 
-impl<T: ?Sized + EncodeRlp> EncodeRlp for &T {
+impl<T: ?Sized + RLP> RLP for &T {
     fn encode(&self) -> Bytes {
         T::encode(self)
     }
@@ -39,17 +39,17 @@ impl<T: ?Sized + EncodeRlp> EncodeRlp for &T {
 // if isinstance(raw_data, (bytearray, bytes))? {
 //     return Ok(encode_bytes(raw_data)?);
 
-impl EncodeRlp for Bytes {
+impl RLP for Bytes {
     fn encode(&self) -> Bytes {
         encode_bytes(&self)
     }
 }
-impl<const N: usize> EncodeRlp for [u8; N] {
+impl<const N: usize> RLP for [u8; N] {
     fn encode(&self) -> Bytes {
         encode_bytes(self)
     }
 }
-impl EncodeRlp for [u8] {
+impl RLP for [u8] {
     fn encode(&self) -> Bytes {
         encode_bytes(self)
     }
@@ -58,20 +58,20 @@ impl EncodeRlp for [u8] {
 // } else if isinstance(raw_data, (Uint, FixedUInt))? {
 //     return Ok(encode(raw_data.to_be_bytes()?)?);
 
-impl EncodeRlp for Uint {
+impl RLP for Uint {
     fn encode(&self) -> Bytes {
         let bytes = self.to_bytes_be();
         encode_bytes(strip_leading_zeros(&bytes))
     }
 }
 
-impl EncodeRlp for U64 {
+impl RLP for U64 {
     fn encode(&self) -> Bytes {
         encode_bytes(strip_leading_zeros(&self.to_be_bytes()))
     }
 }
 
-impl EncodeRlp for U32 {
+impl RLP for U32 {
     fn encode(&self) -> Bytes {
         encode_bytes(strip_leading_zeros(&self.to_be_bytes()))
     }
@@ -80,12 +80,12 @@ impl EncodeRlp for U32 {
 // } else if isinstance(raw_data, str)? {
 //     return Ok(encode_bytes(raw_data.encode()?)?);
 
-impl EncodeRlp for String {
+impl RLP for String {
     fn encode(&self) -> Bytes {
         str::encode(self)
     }
 }
-impl EncodeRlp for str {
+impl RLP for str {
     fn encode(&self) -> Bytes {
         encode_bytes(&self.as_bytes())
     }
@@ -98,7 +98,7 @@ impl EncodeRlp for str {
 //         return Ok(encode_bytes([])?);
 //     }
 
-impl EncodeRlp for bool {
+impl RLP for bool {
     fn encode(&self) -> Bytes {
         if *self {
             encode_bytes(&[1])
@@ -111,7 +111,7 @@ impl EncodeRlp for bool {
 // } else if isinstance(raw_data, Sequence)? {
 //     return Ok(encode_sequence(raw_data)?);
 
-impl<T: EncodeRlp> EncodeRlp for [T] {
+impl<T: RLP> RLP for [T] {
     fn encode(&self) -> Bytes {
         let mut joined_encodings = vec![];
         for item in self {
@@ -121,7 +121,7 @@ impl<T: EncodeRlp> EncodeRlp for [T] {
     }
 }
 
-impl<const N: usize, T: EncodeRlp> EncodeRlp for [T; N] {
+impl<const N: usize, T: RLP> RLP for [T; N] {
     fn encode(&self) -> Bytes {
         let mut joined_encodings = vec![];
         for item in self {
@@ -131,19 +131,19 @@ impl<const N: usize, T: EncodeRlp> EncodeRlp for [T; N] {
     }
 }
 
-impl EncodeRlp for () {
+impl RLP for () {
     fn encode(&self) -> Bytes {
         encode_sequence(&[])
     }
 }
 
-impl EncodeRlp for Box<dyn EncodeRlp> {
+impl RLP for Box<dyn RLP> {
     fn encode(&self) -> Bytes {
         self.as_ref().encode()
     }
 }
 
-impl<R : EncodeRlp> EncodeRlp for Vec<R> {
+impl<R : RLP> RLP for Vec<R> {
     fn encode(&self) -> Bytes {
         let mut joined_encodings = vec![];
         for item in self {
@@ -156,9 +156,9 @@ impl<R : EncodeRlp> EncodeRlp for Vec<R> {
 macro_rules! impl_tuples {
     (@__expand) => {};
     (@__expand $($t:ident)*) => {
-        impl<$($t),*> EncodeRlp for ($($t,)*)
+        impl<$($t),*> RLP for ($($t,)*)
         where
-            $($t: EncodeRlp),*
+            $($t: RLP),*
         {
             fn encode(&self) -> Bytes {
                 #[allow(non_snake_case)]
@@ -217,7 +217,7 @@ pub fn encode_bytes(raw_bytes: &[u8]) -> Bytes {
 
 pub fn encode_iter<T>(iter: impl IntoIterator<Item = T>) -> Bytes
     where
-        T: EncodeRlp,
+        T: RLP,
 {
     let bytes = iter
         .into_iter()
@@ -259,7 +259,7 @@ pub fn encode_sequence(joined_encodings: &[u8]) -> Bytes {
 }
 
 
-pub fn rlp_hash<R: ?Sized + EncodeRlp>(raw_data: &R) -> Hash32{
+pub fn rlp_hash<R: ?Sized + RLP>(raw_data: &R) -> Hash32{
     let data = encode(raw_data);
     return keccak256(&data)
 }

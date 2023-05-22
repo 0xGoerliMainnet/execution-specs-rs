@@ -10,7 +10,7 @@
 
 use std::collections::HashMap;
 
-use crate::ethereum::{rlp::{EncodeRlp}, base_types::{Bytes, U256, Bytes32}, exceptions::EthereumException};
+use crate::ethereum::{rlp::{RLP}, base_types::{Bytes, U256, Bytes32}, exceptions::EthereumException};
 
 use super::fork_types::{keccak256, Account, Address, Root};
 
@@ -85,11 +85,11 @@ pub enum InternalNode {
 #[derive(Debug)]
 pub enum Encodable {
     Bytes(Bytes),
-    RLP(Box<dyn EncodeRlp>),
+    RLP(Box<dyn RLP>),
     Root(Root),
 }
 
-impl EncodeRlp for Encodable {
+impl RLP for Encodable {
     fn encode(&self) -> Bytes {
         match self {
             Encodable::Bytes(bytes) => bytes.as_ref().encode(),
@@ -121,7 +121,7 @@ impl EncodeRlp for Encodable {
 /// The use of Dyn is significantly suboptimal, but the code is illustrative only.
 /// 
 pub fn encode_internal_node(node: InternalNode) -> Encodable {
-    let unencoded : Box<dyn EncodeRlp> = match node {
+    let unencoded : Box<dyn RLP> = match node {
         InternalNode::LeafNode{rest_of_key, value} => {
             Box::new((
                 nibble_list_to_compact(&rest_of_key, true),

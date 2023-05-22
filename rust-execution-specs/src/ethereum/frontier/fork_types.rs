@@ -6,7 +6,7 @@
 /// Types re-used throughout the specification, which are specific to Ethereum.
 /// 
 
-use crate::ethereum::{base_types::{Uint, U256, Bytes, Bytes20, Bytes256, Bytes32, Bytes8}, rlp::{self, EncodeRlp}};
+use crate::ethereum::{base_types::{Uint, U256, Bytes, Bytes20, Bytes256, Bytes32, Bytes8}, rlp::{self, RLP}};
 
 pub type Hash32 = [u8; 32];
 pub type Hash64 = [u8; 64];
@@ -111,7 +111,7 @@ pub struct Header {
 impl Header {
 }
 
-impl EncodeRlp for Header {
+impl RLP for Header {
     fn encode(&self) -> Bytes {
         // rlp::encode(&(
         //     &self.parent_hash,
