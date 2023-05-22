@@ -13,9 +13,9 @@ use num_bigint::BigUint;
 use crate::{
     ethereum::{
         frontier::{
-            fork_types::{Bloom, Hash32, Header},
+            fork_types::{Hash32, Header},
             state::{self, state_root, State},
-            trie::{root, Root, Trie},
+            trie::{root, Trie, dummy_root},
         },
         rlp,
     },
@@ -137,7 +137,7 @@ pub fn get_genesis_configuration(
 ///         The genesis configuration to use.
 ///
 pub fn add_genesis_block(
-    hardfork: HardFork,
+    _hardfork: HardFork,
     chain: BlockChain,
     genesis: GenesisConfiguration,
 ) -> Result<(), EthereumException> {
@@ -146,18 +146,13 @@ pub fn add_genesis_block(
         state::create_ether(&mut state, account, balance);
     }
 
-    // TODO: remove this and change to None
-    let _f = |a: &Address| -> Root {
-        return Root::default();
-    };
-
-    let genesis_header = Header {
+    let _genesis_header = Header {
         parent_hash: Hash32::default(),
         ommers_hash: rlp::rlp_hash(&()),
         coinbase: Address::default(),
         state_root: state_root(&chain.state),
-        transactions_root: root(&Trie::<Address, _>::new(false, ()), Some(_f)),
-        receipt_root: root(&Trie::<Address, _>::new(false, ()), Some(_f)),
+        transactions_root: root(&Trie::<Address, _>::new(false, ()), dummy_root),
+        receipt_root: root(&Trie::<Address, _>::new(false, ()), dummy_root),
         bloom: [0; 256],
         difficulty: genesis.difficulty,
         number: BigUint::default(),

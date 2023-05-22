@@ -1,8 +1,8 @@
-use std::{dbg, assert_eq};
+use std::{assert_eq};
 
 use hex_literal::hex;
 use num_bigint::BigUint;
-use num_traits::cast::{FromPrimitive, self};
+use num_traits::cast::{FromPrimitive};
 use execution_specs_rs::ethereum::base_types::{U256, Bytes};
 use execution_specs_rs::ethereum::exceptions::EthereumException;
 use execution_specs_rs::ethereum::genesis::{get_genesis_configuration, GenesisConfiguration};

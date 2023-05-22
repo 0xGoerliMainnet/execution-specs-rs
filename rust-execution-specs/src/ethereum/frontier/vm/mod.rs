@@ -41,20 +41,20 @@ pub struct Message {
 
 /// The internal state of the virtual machine.
 pub struct Evm {
-    pc: usize,
-    stack: Vec<U256>,
-    memory: Vec<u8>,
-    code: Bytes,
-    gas_left: U256,
-    env: Environment,
-    valid_jump_destinations: HashSet<U256>,
-    logs: Vec<Log>,
-    refund_counter: U256,
-    running: bool,
-    message: Message,
-    output: Bytes,
-    accounts_to_delete: HashSet<Address>,
-    has_erred: bool,
+    pub pc: usize,
+    pub stack: Vec<U256>,
+    pub memory: Vec<u8>,
+    pub code: Bytes,
+    pub gas_left: U256,
+    pub env: Environment,
+    pub valid_jump_destinations: HashSet<U256>,
+    pub logs: Vec<Log>,
+    pub refund_counter: U256,
+    pub running: bool,
+    pub message: Message,
+    pub output: Bytes,
+    pub accounts_to_delete: HashSet<Address>,
+    pub has_erred: bool,
 }
 
 /// Incorporate the state of a successful `child_evm` into the parent `evm`.

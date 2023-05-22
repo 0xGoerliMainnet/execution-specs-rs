@@ -8,7 +8,7 @@
 use super::{base_types::{strip_leading_zeros, Bytes, Uint, U32, U64}, frontier::fork_types::{keccak256, Hash32}};
 
 /// Trait for converting objects to RLP-encoded byte arrays.
-pub trait EncodeRlp {
+pub trait EncodeRlp : std::fmt::Debug {
     /// Encode an object into some Bytes.
     fn encode(&self) -> Bytes;
 }
@@ -137,8 +137,22 @@ impl EncodeRlp for () {
     }
 }
 
-// } else if is_dataclass(raw_data)? {
-//     return Ok(encode(astuple(raw_data)?)?);
+impl EncodeRlp for Box<dyn EncodeRlp> {
+    fn encode(&self) -> Bytes {
+        self.as_ref().encode()
+    }
+}
+
+impl<R : EncodeRlp> EncodeRlp for Vec<R> {
+    fn encode(&self) -> Bytes {
+        let mut joined_encodings = vec![];
+        for item in self {
+            joined_encodings.extend(item.encode().iter().copied());
+        }
+        encode_sequence(&joined_encodings)
+    }
+}
+
 macro_rules! impl_tuples {
     (@__expand) => {};
     (@__expand $($t:ident)*) => {
@@ -165,7 +179,8 @@ macro_rules! impl_tuples {
     };
 }
 
-impl_tuples!(T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13 T14 T15 T16 T17 T18 T19);
+// impl_tuples!(T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13 T14 T15 T16 T17 T18 T19);
+impl_tuples!(T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11);
 
 ///
 ///     Encodes `raw_bytes`, a sequence of bytes, using RLP.

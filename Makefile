@@ -24,11 +24,15 @@ docs-open: docs ## Open docs
 
 
 exec-python:
-	@cd $(PY_EXECUTION_FOLDER)
-	@echo 'ethereum.rlp.encode("")'
-	@python -c 'from ethereum.rlp import encode; output = encode(""); print("Output: ", output, "\n")'
-	@echo "ethereum.rlp.encode(ethereum.base_types.Uint(7))'"
-	@python -c 'from ethereum.rlp import encode; from ethereum.base_types import Uint; output = encode(Uint(7)); print("Output:", output, "\n")'
+	echo 'ethereum.rlp.encode("")'
+	cd $(PY_EXECUTION_FOLDER); python -c 'from ethereum.rlp import encode; output = encode(""); print("Output: ", output, "\n")'
+	echo "ethereum.rlp.encode(ethereum.base_types.Uint(7))'"
+	cd $(PY_EXECUTION_FOLDER); python -c 'from ethereum.rlp import encode; from ethereum.base_types import Uint; output = encode(Uint(7)); print("Output:", output, "\n")'
+
+quick-test:
+	cp quick_test.py $(PY_EXECUTION_FOLDER)
+	cd $(PY_EXECUTION_FOLDER); python quick_test.py
+	cd rust-execution-specs; cargo test frontier::test_trie::quick_test
 
 clean:
 	@rm -rf execution-specs

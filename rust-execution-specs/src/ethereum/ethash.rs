@@ -5,22 +5,22 @@ use super::{
     frontier::fork_types::{keccak256, keccak512, Hash32}, utils::numeric::{le_uint32_sequence_to_uint, le_bytes_to_uint32_sequence, le_uint32_sequence_to_bytes},
 };
 
-const EPOCH_SIZE: u64 = 30_000;
-const INITIAL_CACHE_SIZE: u64 = 1 << 24;
-const CACHE_EPOCH_GROWTH_SIZE: u64 = 1 << 17;
-const INITIAL_DATASET_SIZE: u64 = 1 << 30;
-const DATASET_EPOCH_GROWTH_SIZE: u64 = 1 << 23;
-const HASH_BYTES: usize = 64;
-const MIX_BYTES: usize = 128;
-const CACHE_ROUNDS: usize = 3;
-const DATASET_PARENTS: usize = 256;
-const HASHIMOTO_ACCESSES: usize = 64;
+pub const EPOCH_SIZE: u64 = 30_000;
+pub const INITIAL_CACHE_SIZE: u64 = 1 << 24;
+pub const CACHE_EPOCH_GROWTH_SIZE: u64 = 1 << 17;
+pub const INITIAL_DATASET_SIZE: u64 = 1 << 30;
+pub const DATASET_EPOCH_GROWTH_SIZE: u64 = 1 << 23;
+pub const HASH_BYTES: usize = 64;
+pub const MIX_BYTES: usize = 128;
+pub const CACHE_ROUNDS: usize = 3;
+pub const DATASET_PARENTS: usize = 256;
+pub const HASHIMOTO_ACCESSES: usize = 64;
 
-fn epoch(block_number: u64) -> u64 {
+pub fn epoch(block_number: u64) -> u64 {
     block_number / EPOCH_SIZE
 }
 
-fn is_prime(number: u64) -> bool {
+pub fn is_prime(number: u64) -> bool {
     if number < 2 {
         return false;
     }
@@ -32,7 +32,7 @@ fn is_prime(number: u64) -> bool {
     true
 }
 
-fn cache_size(block_number: u64) -> u64 {
+pub fn cache_size(block_number: u64) -> u64 {
     let mut size = INITIAL_CACHE_SIZE + (CACHE_EPOCH_GROWTH_SIZE * epoch(block_number));
     size -= HASH_BYTES as u64;
     while !is_prime(size / (HASH_BYTES as u64)) {
@@ -41,7 +41,7 @@ fn cache_size(block_number: u64) -> u64 {
     size
 }
 
-fn dataset_size(block_number: u64) -> u64 {
+pub fn dataset_size(block_number: u64) -> u64 {
     let mut size = INITIAL_DATASET_SIZE + (DATASET_EPOCH_GROWTH_SIZE * epoch(block_number));
     size -= MIX_BYTES as u64;
     while !is_prime(size / (MIX_BYTES as u64)) {
@@ -50,7 +50,7 @@ fn dataset_size(block_number: u64) -> u64 {
     size
 }
 
-fn generate_seed(block_number: u64) -> Hash32 {
+pub fn generate_seed(block_number: u64) -> Hash32 {
     let mut epoch_number = epoch(block_number);
 
     let mut seed = Hash32::default();
@@ -62,7 +62,7 @@ fn generate_seed(block_number: u64) -> Hash32 {
     seed
 }
 
-fn generate_cache(block_number: u64) -> Vec<Vec<u32>> {
+pub fn generate_cache(block_number: u64) -> Vec<Vec<u32>> {
     let seed = generate_seed(block_number);
     let cache_size_bytes = cache_size(block_number);
 
@@ -109,7 +109,7 @@ fn generate_cache(block_number: u64) -> Vec<Vec<u32>> {
         .collect()
 }
 
-fn fnv(a: u32, b: u32) -> u32 {
+pub fn fnv(a: u32, b: u32) -> u32 {
     const FNV_PRIME: u32 = 0x0100_0193;
     const U32_MAX_VALUE: u32 = std::u32::MAX;
 
@@ -120,7 +120,7 @@ fn fnv(a: u32, b: u32) -> u32 {
     result.to_u32().unwrap()
 }
 
-fn fnv_hash(mix_integers: &[u32], data: &[u32]) -> Vec<u32> {
+pub fn fnv_hash(mix_integers: &[u32], data: &[u32]) -> Vec<u32> {
     mix_integers
         .iter()
         .enumerate()
@@ -128,7 +128,7 @@ fn fnv_hash(mix_integers: &[u32], data: &[u32]) -> Vec<u32> {
         .collect()
 }
 
-fn generate_dataset_item(cache: &Vec<Vec<u32>>, index: usize) -> Vec<u8> {
+pub fn generate_dataset_item(cache: &Vec<Vec<u32>>, index: usize) -> Vec<u8> {
     let mix = keccak512(
         (le_uint32_sequence_to_uint(&cache[index % cache.len()]).unwrap() ^ Uint::from(index))
             .to_bytes_le().as_slice(),
@@ -148,7 +148,7 @@ fn generate_dataset_item(cache: &Vec<Vec<u32>>, index: usize) -> Vec<u8> {
     keccak512(Box::leak(mix)).to_vec()
 }
 
-fn generate_dataset(block_number: u64) -> Vec<Vec<u8>> {
+pub fn generate_dataset(block_number: u64) -> Vec<Vec<u8>> {
     let dataset_size_bytes = dataset_size(block_number);
     let cache = generate_cache(block_number);
 

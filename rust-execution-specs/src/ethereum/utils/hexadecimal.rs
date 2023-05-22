@@ -248,6 +248,7 @@ pub fn hex_to_u256(hex_string: &str) -> Result<U256, EthereumException> {
 pub fn hex(bytes: &[u8]) -> String {
     let mut res = String::new();
     let hex = b"0123456789abcdef";
+    res.push_str("0x");
     for b in bytes {
         res.push(hex[*b as usize >> 4].into());
         res.push(hex[*b as usize & 0x0f].into());

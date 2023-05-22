@@ -88,7 +88,7 @@ pub fn encode_account(raw_account_data: Account, storage_root: Root) -> Bytes {
 /// 
 ///     Header portion of a block on the chain.
 ///     
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Header {
     pub parent_hash: Hash32,
     pub ommers_hash: Hash32,
@@ -113,23 +113,24 @@ impl Header {
 
 impl EncodeRlp for Header {
     fn encode(&self) -> Bytes {
-        rlp::encode(&(
-            self.parent_hash,
-            self.ommers_hash,
-            self.coinbase,
-            self.state_root,
-            self.transactions_root,
-            self.receipt_root,
-            self.bloom,
-            self.difficulty.clone(),
-            self.number.clone(),
-            self.gas_limit.clone(),
-            self.gas_used.clone(),
-            self.timestamp.clone(),
-            self.extra_data.clone(),
-            self.mix_digest,
-            self.nonce,
-        ))
+        // rlp::encode(&(
+        //     &self.parent_hash,
+        //     &self.ommers_hash,
+        //     &self.coinbase,
+        //     &self.state_root,
+        //     &self.transactions_root,
+        //     &self.receipt_root,
+        //     &self.bloom,
+        //     &self.difficulty.clone(),
+        //     &self.number.clone(),
+        //     &self.gas_limit.clone(),
+        //     &self.gas_used.clone(),
+        //     &self.timestamp.clone(),
+        //     &self.extra_data.clone(),
+        //     &self.mix_digest,
+        //     &self.nonce,
+        // ))
+        todo!()
     }
 }
 

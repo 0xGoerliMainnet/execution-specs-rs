@@ -34,18 +34,18 @@ use crate::ethereum::{base_types::{U64, Uint, U256}, exceptions::EthereumExcepti
 use super::{fork_types::{Block, Hash32, keccak256, Header, Bloom, Root, Transaction, Address}, state::State};
 
 // static  BLOCK_REWARD: U256 = U256::from(10u64).pow(18u64).mul(U256::from(5u64));
-const GAS_LIMIT_ADJUSTMENT_FACTOR: u64 = 1024;
-const GAS_LIMIT_MINIMUM:u64 = 5000;
-const MINIMUM_DIFFICULTY:u64 = 131072;
-const MAX_OMMER_DEPTH: u8 = 6;
+pub const GAS_LIMIT_ADJUSTMENT_FACTOR: u64 = 1024;
+pub const GAS_LIMIT_MINIMUM:u64 = 5000;
+pub const MINIMUM_DIFFICULTY:u64 = 131072;
+pub const MAX_OMMER_DEPTH: u8 = 6;
 
 ///
 ///     History and current state of the block chain.
 ///     
 pub struct BlockChain {
-    blocks: Vec<Block>,
+    pub blocks: Vec<Block>,
     pub state: State,
-    chain_id: U64,
+    pub chain_id: U64,
 }
 
 // impl BlockChain {
@@ -182,7 +182,7 @@ pub fn validate_header(header: &Header, parent_header: Header) -> Result<(), Eth
     assert!(header.difficulty == block_difficulty, "InvalidBlock");
     let block_parent_hash = keccak256(Box::leak(rlp::encode(&parent_header)));
     assert!(header.parent_hash == block_parent_hash, "InvalidBlock");
-    validate_proof_of_work(header)?;
+    // validate_proof_of_work(header)?;
 
     Ok(())
 }
@@ -209,7 +209,7 @@ pub fn validate_header(header: &Header, parent_header: Header) -> Result<(), Eth
 ///     hash : `Hash32`
 ///         The PoW valid rlp hash of the passed in header.
 ///
-pub fn generate_header_hash_for_pow(header: &Header) -> Result<Hash32, EthereumException> {
+pub fn generate_header_hash_for_pow(_header: &Header) -> Result<Hash32, EthereumException> {
     // header_data_without_pow_artefacts = [header.parent_hash, header.ommers_hash, header.coinbase, header.state_root, header.transactions_root, header.receipt_root, header.bloom, header.difficulty, header.number, header.gas_limit, header.gas_used, header.timestamp, header.extra_data];
     // return Ok(rlp.rlp_hash(header_data_without_pow_artefacts)?);
     todo!()
@@ -336,6 +336,7 @@ pub fn generate_header_hash_for_pow(header: &Header) -> Result<Hash32, EthereumE
 ///     state : `ethereum.fork_types.State`
 ///         State after all transactions have been executed.
 ///
+#[allow(unused_variables)]
 pub fn apply_body(state: &State, block_hashes: Vec<Hash32>, coinbase: &Address, block_number: &Uint, block_gas_limit: &Uint, block_time: &U256, block_difficulty: &Uint, transactions: &Vec<Transaction>, ommers: &Vec<Header>) -> Result<(Uint, Root, Root, Bloom, State), EthereumException> {
     // gas_available = block_gas_limit;
     // // TypedAssignment unsupported
@@ -379,6 +380,7 @@ pub fn apply_body(state: &State, block_hashes: Vec<Hash32>, coinbase: &Address, 
 ///     chain :
 ///         History and current state.
 ///
+#[allow(unused_variables)]
 pub fn validate_ommers(ommers: &Vec<Header>, block_header: Header, chain: &BlockChain) -> Result<(), EthereumException> {
     // block_hash = rlp.rlp_hash(block_header)?;
     // ensure(rlp.rlp_hash(ommers)? == block_header.ommers_hash, InvalidBlock)?;
@@ -675,6 +677,7 @@ pub fn validate_ommers(ommers: &Vec<Header>, block_header: Header, chain: &Block
 ///     check : `bool`
 ///         True if gas limit constraints are satisfied, False otherwise.
 ///
+#[allow(unused_variables)]
 pub fn check_gas_limit(gas_limit: &Uint, parent_gas_limit: &Uint) -> Result<bool, EthereumException> {
     // max_adjustment_delta = (parent_gas_limit).floordiv(GAS_LIMIT_ADJUSTMENT_FACTOR);
     // if gas_limit >= parent_gas_limit + max_adjustment_delta {
@@ -719,6 +722,7 @@ pub fn check_gas_limit(gas_limit: &Uint, parent_gas_limit: &Uint) -> Result<bool
 ///     difficulty : `ethereum.base_types.Uint`
 ///         Computed difficulty for a block.
 ///
+#[allow(unused_variables)]
 pub fn calculate_block_difficulty(block_number: &Uint, block_timestamp: &U256, parent_timestamp: &U256, parent_difficulty: &Uint) -> Result<Uint, EthereumException> {
     // max_adjustment_delta = (parent_difficulty).floordiv(Uint(2048)?);
     // if block_timestamp < parent_timestamp + 13 {

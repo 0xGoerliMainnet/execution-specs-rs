@@ -1,14 +1,15 @@
 
-use execution_specs_rs::ethereum::{exceptions::EthereumException, frontier::trie::{Trie, trie_set}, base_types::Bytes, utils::hexadecimal::{has_hex_prefix, hex_to_bytes, remove_hex_prefix}};
+use execution_specs_rs::ethereum::{exceptions::EthereumException, frontier::{trie::{Trie, trie_set, root, dummy_root}}, base_types::Bytes, utils::hexadecimal::{has_hex_prefix, hex_to_bytes, hex}};
 
 pub fn to_bytes(data: &serde_json::Value) -> Result<Bytes, EthereumException> {
     if data.is_null() {
         Ok(Bytes::default())
-    } else if has_hex_prefix(data.as_str().unwrap()) {
+    } else if data.is_string() && has_hex_prefix(data.as_str().unwrap()) {
         Ok(hex_to_bytes(data.as_str().unwrap())?)
+    } else if data.is_string() {
+        Ok(Bytes::from(data.as_str().unwrap().as_ref()))
     } else {
         todo!();
-        // Ok(data.encode())
     }
 }
 
@@ -30,7 +31,6 @@ pub fn test_trie_secure_hex() -> Result<(), EthereumException> {
     Ok(())
 }
 
-
 // pub fn test_trie_secure() -> Result<(), EthereumException> {
 //     tests = load_tests("trietest_secureTrie.json")?;
 //     for (name, test) in tests.items()? {
@@ -43,7 +43,6 @@ pub fn test_trie_secure_hex() -> Result<(), EthereumException> {
 //         assert!(result.hex()? == expected, "test {name} failed");
 //     }
 // }
-
 
 // pub fn test_trie_secure_any_order() -> Result<(), EthereumException> {
 //     tests = load_tests("trieanyorder_secureTrie.json")?;
@@ -58,24 +57,32 @@ pub fn test_trie_secure_hex() -> Result<(), EthereumException> {
 //     }
 // }
 
-
 #[test]
 pub fn test_trie() -> Result<(), EthereumException> {
     let tests = load_tests("trietest.json")?;
-    for (name, test) in tests.as_object().unwrap() {
-        let mut st = Trie::<String, String>::new(false, String::default());
+    for (_name, test) in tests.as_object().unwrap() {
+        let mut st = Trie::<Bytes, Bytes>::new(false, Bytes::default());
         for t in test["in"].as_array().unwrap() {
             let t = t.as_array().unwrap();
-            let key = t[0].as_str().unwrap().to_owned();
-            let value = (if t[1].is_null() { "" } else { t[1].as_str().unwrap() }).to_owned();
-            trie_set(&mut st, key, value);
+            trie_set(&mut st, to_bytes(&t[0])?, to_bytes(&t[1])?);
         }
-        println!("{:#?}", st);
-        // result = root(st)?;
-        // expected = remove_hex_prefix(test.get("root")?)?;
-        // assert!(result.hex()? == expected, "test {name} failed");
+        // println!("{:#?}", st);
+        let result = root(&st, dummy_root);
+        let expected = test["root"].as_str().unwrap();
+        assert_eq!(hex(&result), expected);
     }
     Ok(())
+}
+
+#[test]
+fn quick_test() {
+    let mut t = Trie::<String, String>::new(false, "".into());
+    trie_set(&mut t, "abc".to_string(),"abc".to_string());
+    trie_set(&mut t, "abcd".to_string(),"abcd".to_string());
+    // trie_set(&mut t, "hello".to_string(),"abcdefghijklmnopqrstuvwxyz".to_string());
+    // trie_set(&mut t, "".to_string(),"abcdefghijklmnopqrstuvwxyz".to_string());
+    let root = root(&t, dummy_root);
+    println!("root={:?}", hex(&root));
 }
 
 

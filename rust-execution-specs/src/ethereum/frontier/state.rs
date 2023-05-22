@@ -15,7 +15,7 @@ use super::{
     fork_types::{Account, Address, Root, empty_account},
     trie::{self, Trie},
 };
-use crate::ethereum::base_types::{Bytes, Uint, U256, Bytes32};
+use crate::ethereum::{base_types::{Bytes, Uint, U256, Bytes32}, frontier::trie::dummy_root};
 use num_traits::CheckedSub;
 use std::collections::HashMap;
 
@@ -238,7 +238,7 @@ pub fn storage_root(state: &State, address: &Address) -> Root {
     let z = state
         .storage_tries
         .get(address)
-        .map(|trie| trie::root(trie, Some(|_: &Address| Root::default())))
+        .map(|trie| trie::root(trie, dummy_root))
         .unwrap()
         // .unwrap_or(trie::EMPTY_TRIE_ROOT.clone());
     ;
@@ -261,7 +261,7 @@ pub fn state_root(state: &State) -> Root {
     assert!(state.snapshots.is_empty());
 
     let get_state_root = |address: &Address| -> Root { storage_root(state, address) };
-    trie::root(&state.main_trie, Some(get_state_root))
+    trie::root(&state.main_trie, get_state_root)
 }
 
 /// Checks if an account exists in the state trie

@@ -11,7 +11,6 @@
 //! Implementations of the EVM logging instructions.
 
 use super::super::{exceptions::Result, gas, stack, Evm};
-use crate::ethereum::base_types::U256;
 use crate::ethereum::frontier::fork_types::Log;
 use crate::ethereum::frontier::vm::memory::memory_read_bytes;
 

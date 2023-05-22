@@ -9,6 +9,7 @@
 //! ------------
 //!
 //! Implementations of the EVM stack related instructions.
+#![allow(dead_code)]
 
 use super::super::{exceptions::Result, gas, stack, Evm};
 use crate::ethereum::base_types::U256;

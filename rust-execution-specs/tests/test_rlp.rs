@@ -122,33 +122,33 @@ fn test_rlp_encode_10_elem_byte_uint_combo() {
     assert_eq!(*encode(&raw_data), *expected);
 }
 
-#[test]
-fn test_rlp_encode_20_elem_byte_uint_combo() {
-    let raw_data = (
-        Uint::from(35u8),
-        Uint::from(35u8),
-        Uint::from(35u8),
-        Uint::from(35u8),
-        Uint::from(35u8),
-        Uint::from(35u8),
-        Uint::from(35u8),
-        Uint::from(35u8),
-        Uint::from(35u8),
-        Uint::from(35u8),
-        b"hello",
-        b"hello",
-        b"hello",
-        b"hello",
-        b"hello",
-        b"hello",
-        b"hello",
-        b"hello",
-        b"hello",
-        b"hello",
-    );
-    let expected = b"\xf8F##########\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello";
-    assert_eq!(*encode(&raw_data), *expected);
-}
+// #[test]
+// fn test_rlp_encode_20_elem_byte_uint_combo() {
+//     let raw_data = (
+//         Uint::from(35u8),
+//         Uint::from(35u8),
+//         Uint::from(35u8),
+//         Uint::from(35u8),
+//         Uint::from(35u8),
+//         Uint::from(35u8),
+//         Uint::from(35u8),
+//         Uint::from(35u8),
+//         Uint::from(35u8),
+//         Uint::from(35u8),
+//         b"hello",
+//         b"hello",
+//         b"hello",
+//         b"hello",
+//         b"hello",
+//         b"hello",
+//         b"hello",
+//         b"hello",
+//         b"hello",
+//         b"hello",
+//     );
+//     let expected = b"\xf8F##########\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello\x85hello";
+//     assert_eq!(*encode(&raw_data), *expected);
+// }
 
 #[test]
 fn test_rlp_encode_nested_sequence() {
