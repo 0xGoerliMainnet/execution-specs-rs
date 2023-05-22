@@ -290,29 +290,25 @@ pub fn common_prefix_length(a: &[u8], b: &[u8]) -> usize {
 /// encoded in high nibble of the highest byte. The flag nibble can be broken
 /// down into two two-bit flags.
 /// 
-/// Highest nibble::
-/// 
+/// Highest nibble:
 ///     +---+---+----------+--------+
 ///     | _ | _ | is_leaf | parity |
 ///     +---+---+----------+--------+
 ///       3   2      1         0
-/// 
 /// 
 /// The lowest bit of the nibble encodes the parity of the length of the
 /// remaining nibbles -- `0` when even and `1` when odd. The second lowest bit
 /// is used to distinguish leaf and extension nodes. The other two bits are not
 /// used.
 /// 
-/// Parameters
-/// ----------
+/// ## Parameters
 /// x :
 ///     Array of nibbles.
 /// is_leaf :
 ///     True if this is part of a leaf node, or false if it is an extension
 ///     node.
 /// 
-/// Returns
-/// -------
+/// ## Returns
 /// compressed : `bytearray`
 ///     Compact byte array.
 /// 
